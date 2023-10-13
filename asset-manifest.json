@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.css": "/static/css/main.da7afb81.css",
-    "main.js": "/static/js/main.64ca951b.js",
-    "static/js/787.1968e39d.chunk.js": "/static/js/787.1968e39d.chunk.js",
-    "static/media/Diani_Beach.jpg": "/static/media/Diani_Beach.88285647994b5c18a971.jpg",
-    "static/media/Mount-Suswa.jpg": "/static/media/Mount-Suswa.9b19c3e61f841d8d298c.jpg",
-    "static/media/lake-kivu-rwanda.jpg": "/static/media/lake-kivu-rwanda.bad0ff8509bb39a5e02d.jpg",
-    "static/media/travel-tech-logo.png": "/static/media/travel-tech-logo.ca8d70ea29a7e1a681a6.png",
-    "static/media/notification.svg": "/static/media/notification.ce68ac2be125b7836a7ec2de81d2c902.svg",
-    "index.html": "/index.html",
-    "main.da7afb81.css.map": "/static/css/main.da7afb81.css.map",
-    "main.64ca951b.js.map": "/static/js/main.64ca951b.js.map",
-    "787.1968e39d.chunk.js.map": "/static/js/787.1968e39d.chunk.js.map"
+    "main.css": "/travel-portal/static/css/main.da7afb81.css",
+    "main.js": "/travel-portal/static/js/main.79f171d4.js",
+    "static/js/787.1968e39d.chunk.js": "/travel-portal/static/js/787.1968e39d.chunk.js",
+    "static/media/Diani_Beach.jpg": "/travel-portal/static/media/Diani_Beach.88285647994b5c18a971.jpg",
+    "static/media/Mount-Suswa.jpg": "/travel-portal/static/media/Mount-Suswa.9b19c3e61f841d8d298c.jpg",
+    "static/media/lake-kivu-rwanda.jpg": "/travel-portal/static/media/lake-kivu-rwanda.bad0ff8509bb39a5e02d.jpg",
+    "static/media/travel-tech-logo.png": "/travel-portal/static/media/travel-tech-logo.ca8d70ea29a7e1a681a6.png",
+    "static/media/notification.svg": "/travel-portal/static/media/notification.ce68ac2be125b7836a7ec2de81d2c902.svg",
+    "index.html": "/travel-portal/index.html",
+    "main.da7afb81.css.map": "/travel-portal/static/css/main.da7afb81.css.map",
+    "main.79f171d4.js.map": "/travel-portal/static/js/main.79f171d4.js.map",
+    "787.1968e39d.chunk.js.map": "/travel-portal/static/js/787.1968e39d.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.da7afb81.css",
-    "static/js/main.64ca951b.js"
+    "static/js/main.79f171d4.js"
   ]
 }
