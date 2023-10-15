@@ -1,6 +1,6 @@
 {
   "name": "travel-planner",
-  "homepage": "https://alvinmugambi.github.io/travel-portal/",
+  "homepage": "https://lustrous-churros-b068a5.netlify.app/travel-portal/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -10,6 +10,7 @@
     "axios": "^1.5.1",
     "date-fns": "^2.30.0",
     "jwt-decode": "^3.1.2",
+    "netlify-cli": "^16.7.0",
     "rc-checkbox": "^3.1.0",
     "react": "^18.2.0",
     "react-calendar": "^4.6.0",
@@ -54,6 +55,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "eslint-config-prettier": "^9.0.0",
     "gh-pages": "^6.0.0",
     "prettier": "^3.0.3"
