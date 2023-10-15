@@ -1,6 +1,6 @@
 {
   "name": "travel-planner",
-  "homepage": "https://lustrous-churros-b068a5.netlify.app/travel-portal/",
+  "homepage": "https://lustrous-churros-b068a5.netlify.app/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
