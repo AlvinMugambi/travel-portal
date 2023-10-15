@@ -2,7 +2,7 @@ export const accommodations = [
   {
     id: '1',
     url: 'https://www.booking.com/hotel/us/three-bedroom-rental-new-york.html?selected_currency=USD&changed_currency=1&lang=en-us&group_adults=2&no_rooms=1&checkin=2023-09-01&checkout=2023-09-02&nflt=price%3DUSD-0-999999-1',
-    name: 'Three Bedroom Rental',
+    name: 'Boxo Diani',
     type: 'apartment',
     description:
       'Located a 13-minute walk from Central Park and 0.6 miles from Strawberry Fields, Three Bedroom Rental offers accommodations with a kitchen in New York. The property is a 4-minute walk from the Lincoln Center and features free Wifithroughout the property. This 3-bedroom apartment will provide you with a flat-screen TV, air conditioning and a living room. Popular points of interest near the apartment include Carnegie Hall, Broadway Theatre and Museum of Modern Art. The nearest airport is LaGuardia Airport, 7.5 miles from Three Bedroom Rental.',
@@ -25,12 +25,13 @@ export const accommodations = [
       country: 'USA',
       region: 'New York State',
     },
-    image:
-      'https://cf.bstatic.com/xdata/images/hotel/max1024x768/415624316.jpg?k=e36c46833a2d526139f6a1211e9ef4a4ec19c55904affcdc214a15ce32877701&o=&hp=1',
+    image: [
+      'https://cf.bstatic.com/xdata/images/hotel/max1280x900/462375389.jpg?k=a569cd7591a00ea07e1c282e635fdda3c49b3af351c94480aace3a039c46e1ed&o=&hp=1',
+    ],
     rooms: [
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'Two-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 2,
@@ -48,7 +49,7 @@ export const accommodations = [
       },
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'One-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 2,
@@ -66,7 +67,7 @@ export const accommodations = [
       },
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'Four-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 3,
@@ -84,7 +85,7 @@ export const accommodations = [
       },
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'Ten-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 3,
@@ -102,7 +103,7 @@ export const accommodations = [
       },
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'six-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 4,
@@ -120,7 +121,7 @@ export const accommodations = [
       },
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'Eight-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 4,
@@ -141,7 +142,7 @@ export const accommodations = [
   {
     id: '2',
     url: 'https://www.booking.com/hotel/us/three-bedroom-rental-new-york.html?selected_currency=USD&changed_currency=1&lang=en-us&group_adults=2&no_rooms=1&checkin=2023-09-01&checkout=2023-09-02&nflt=price%3DUSD-0-999999-1',
-    name: 'Three Bedroom Rental',
+    name: 'Villa Sultanas Diani',
     type: 'apartment',
     description:
       'Located a 13-minute walk from Central Park and 0.6 miles from Strawberry Fields, Three Bedroom Rental offers accommodations with a kitchen in New York. The property is a 4-minute walk from the Lincoln Center and features free Wifithroughout the property. This 3-bedroom apartment will provide you with a flat-screen TV, air conditioning and a living room. Popular points of interest near the apartment include Carnegie Hall, Broadway Theatre and Museum of Modern Art. The nearest airport is LaGuardia Airport, 7.5 miles from Three Bedroom Rental.',
@@ -164,12 +165,13 @@ export const accommodations = [
       country: 'USA',
       region: 'New York State',
     },
-    image:
-      'https://cf.bstatic.com/xdata/images/hotel/max1024x768/415624316.jpg?k=e36c46833a2d526139f6a1211e9ef4a4ec19c55904affcdc214a15ce32877701&o=&hp=1',
+    image: [
+      'https://cf.bstatic.com/xdata/images/hotel/max1024x768/423312476.jpg?k=d8cd400c5aa41699dfd0b0e15703dc101f119b5b4f34d69367e5ad19fa9afa6f&o=&hp=1',
+    ],
     rooms: [
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'One-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 2,
@@ -187,7 +189,7 @@ export const accommodations = [
       },
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'Two-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 2,
@@ -223,7 +225,7 @@ export const accommodations = [
       },
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'Four-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 3,
@@ -241,7 +243,7 @@ export const accommodations = [
       },
       {
         available: true,
-        roomType: 'Three-Bedroom Apartment',
+        roomType: 'Five-Bedroom Apartment',
         bedType:
           'Bedroom 1: 1 queen bed Bedroom 2: 2 bunk beds Bedroom 3: 1 bunk bed Living room: 1 sofa bed',
         persons: 4,
@@ -303,8 +305,9 @@ export const accommodations = [
       country: 'USA',
       region: 'New York State',
     },
-    image:
+    image: [
       'https://cf.bstatic.com/xdata/images/hotel/max1024x768/415624316.jpg?k=e36c46833a2d526139f6a1211e9ef4a4ec19c55904affcdc214a15ce32877701&o=&hp=1',
+    ],
     rooms: [
       {
         available: true,

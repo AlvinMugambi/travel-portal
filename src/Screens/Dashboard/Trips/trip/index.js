@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
-import { useRecoilValue } from 'recoil';
 
 import StyledText from '../../../../Components/Common/StyledText';
 import AccommodationModal from './AccommodationModal';
@@ -10,33 +9,32 @@ import { tripService } from '../../../../Services/tripService';
 
 export default function Trip({ selectedTrip, setTripUpdated }) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [isSuccesful, setIsSuccesful] = useState(false);
   const [inviteStatus, setInviteStatus] = useState('pending');
   const [previewaccommodation, setPreviewAccommodation] = useState();
   const [tripRegister, setTripRegister] = useState([]);
-  const jwtToken = localStorage.getItem('token')
-  const userData = JSON.parse(localStorage.getItem('userData'))
+  const jwtToken = localStorage.getItem('token');
+  const userData = JSON.parse(localStorage.getItem('userData'));
   const [accomodationVotes, setAccomodationVotes] = useState([]);
   const [topSeletedDate, setTopSeletedDate] = useState();
 
   useEffect(() => {
-    setInviteStatus(selectedTrip.invite_status)
-  }, [])
+    setInviteStatus(selectedTrip.invite_status);
+  }, [selectedTrip.invite_status]);
 
   useEffect(() => {
     tripService.getTopVotedDate(selectedTrip?.id, jwtToken).then((res) => {
       setTopSeletedDate(res.data || []);
     });
-  }, []);
+  }, [jwtToken, selectedTrip.id]);
 
   useEffect(() => {
     tripService.getAccomodationVotes(selectedTrip?.id, jwtToken).then((res) => {
       setAccomodationVotes(res.data || []);
     });
-    tripService.getTripRegister(selectedTrip?.id, jwtToken).then(res => {
-      setTripRegister(res.data || [])
-    })
-  }, [modalVisible])
+    tripService.getTripRegister(selectedTrip?.id, jwtToken).then((res) => {
+      setTripRegister(res.data || []);
+    });
+  }, [modalVisible, jwtToken, selectedTrip.id]);
 
   const isTripOrganiser = useMemo(
     () => userData?.id === selectedTrip.organiser,
@@ -44,9 +42,11 @@ export default function Trip({ selectedTrip, setTripUpdated }) {
   );
 
   const getAccomodationVotes = (id) => {
-    const acc = accomodationVotes.find(acc => acc.selected_accomodation_id === id)
-    return acc ? acc.dcount : 0
-  }
+    const acc = accomodationVotes.find(
+      (acc) => acc.selected_accomodation_id === id,
+    );
+    return acc ? acc.dcount : 0;
+  };
 
   const [prefferedDate, setPrefferedDate] = useState(new Date());
 
@@ -71,6 +71,7 @@ export default function Trip({ selectedTrip, setTripUpdated }) {
                 borderRadius: '10px 10px 0 0',
                 height: 300,
               }}
+              alt=''
             />
           </div>
           <StyledText fontSize="25px" fontWeight={700}>
@@ -210,7 +211,6 @@ const styles = {
   },
   form: { display: 'flex', alignItems: 'center', flexDirection: 'column' },
   padb10: { paddingBottom: 10 },
-  form: { display: 'flex', alignItems: 'center', flexDirection: 'column' },
   flexAlignCenter: {
     display: 'flex',
     flexDirection: 'column',

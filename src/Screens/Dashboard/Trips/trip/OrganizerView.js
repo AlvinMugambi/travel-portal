@@ -3,8 +3,6 @@ import StyledText from '../../../../Components/Common/StyledText';
 import { accommodations } from '../../../../static';
 import Button from '../../../../Components/Common/Button';
 import { tripService } from '../../../../Services/tripService';
-import { useRecoilValue } from 'recoil';
-import { JwtTokenState } from '../../../../State/atoms/auth';
 import { authService } from '../../../../Services/authService';
 
 export default function OrganizerView({
@@ -13,11 +11,11 @@ export default function OrganizerView({
   setModalVisible,
   getAccomodationVotes,
   accomodationVotes,
-  topSeletedDate
+  topSeletedDate,
 }) {
   // const jwtToken = useRecoilValue(JwtTokenState);
-  const jwtToken = localStorage.getItem('token')
-  const userData = JSON.parse(localStorage.getItem('userData'))
+  const jwtToken = localStorage.getItem('token');
+  const userData = JSON.parse(localStorage.getItem('userData'));
   const [attendees, setAttendees] = useState([]);
   const [users, setUsers] = useState([]);
   const [inviteSent, setInviteSent] = useState(false);
@@ -26,7 +24,7 @@ export default function OrganizerView({
     tripService.getTripAttendees(tripId, jwtToken).then((res) => {
       setAttendees(res.data || []);
     });
-  }, [inviteSent]);
+  }, [inviteSent, jwtToken, tripId]);
 
   useEffect(() => {
     authService.getUsers().then((res) => {
@@ -47,10 +45,13 @@ export default function OrganizerView({
     () =>
       users.filter(function (objFromA) {
         return !attendees.find(function (objFromB) {
-          return objFromA.username === objFromB.attendee.username || objFromA.username === userData.username;
+          return (
+            objFromA.username === objFromB.attendee.username ||
+            objFromA.username === userData.username
+          );
         });
       }),
-    [users, attendees],
+    [users, attendees, userData.username],
   );
 
   const invite = (username) => {
@@ -79,6 +80,7 @@ export default function OrganizerView({
                   {attendee.invite_accepted && (
                     <img
                       src={require('../../../../Assets/Icons/checked.png')}
+                      alt=''
                       style={styles.check}
                     />
                   )}
@@ -116,7 +118,8 @@ export default function OrganizerView({
         <StyledText fontSize="18px" fontWeight={600}>
           Top selected date
         </StyledText>
-        {topSeletedDate?.length ? <div style={styles.flexRowCenter}>
+        {/* {topSeletedDate?.length ?  */}
+        <div style={styles.flexRowCenter}>
           <div
             style={{
               display: 'flex',
@@ -138,60 +141,72 @@ export default function OrganizerView({
             </div>
             <Button label={'Set as trip date'} width={200} height={40} />
           </div>
-        </div> : (
-          <div style={{marginTop: 20, marginBottom: 20}}>
-            <StyledText>No date votes yet</StyledText>
-          </div>
-        )}
+        </div>
+        {/* //  :
+        //  (
+        //   <div style={{marginTop: 20, marginBottom: 20}}>
+        //     <StyledText>No date votes yet</StyledText>
+        //   </div>
+        // )} */}
         <StyledText fontSize="18px" fontWeight={600}>
           Top voted accommodation
         </StyledText>
         <div style={{ margin: '20px 0' }}>
-          {topVotedAccommodation ? <div
-            className="ripple-btn"
-            style={{ ...styles.accommodationCardView, width: 'fit-content' }}
-            onClick={() => {
-              setPreviewAccommodation(topVotedAccommodation);
-              setModalVisible(true);
-            }}
-          >
-            <div style={styles.accommodationBox}>
-              <img
-                src={topVotedAccommodation?.image}
-                style={styles.accommodationImg}
-              />
-              <div
-                style={{
-                  paddingLeft: 10,
-                  paddingRight: 10,
-                  ...styles.flexRowCenter,
-                  justifyContent: 'space-between',
-                }}
-              >
-                <div>
-                  <StyledText fontWeight={600}>{topVotedAccommodation?.name}</StyledText>
-                  <StyledText fontSize="14px">Votes: {getAccomodationVotes(topVotedAccommodation?.id)}</StyledText>
-                </div>
-                <div>
-                  <div
-                    style={{
-                      ...styles.flexRowCenter,
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <img
-                      src={require('../../../../Assets/Icons/rating.png')}
-                      style={{ width: 20, marginRight: 5 }}
-                    />
-                    <StyledText fontSize="14px">{topVotedAccommodation?.rating}</StyledText>
+          {topVotedAccommodation ? (
+            <div
+              className="ripple-btn"
+              style={{ ...styles.accommodationCardView, width: 'fit-content' }}
+              onClick={() => {
+                setPreviewAccommodation(topVotedAccommodation);
+                setModalVisible(true);
+              }}
+            >
+              <div style={styles.accommodationBox}>
+                <img
+                  src={topVotedAccommodation?.image?.[0]}
+                  alt=''
+                  style={styles.accommodationImg}
+                />
+                <div
+                  style={{
+                    paddingLeft: 10,
+                    paddingRight: 10,
+                    ...styles.flexRowCenter,
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div>
+                    <StyledText fontWeight={600}>
+                      {topVotedAccommodation?.name}
+                    </StyledText>
+                    <StyledText fontSize="14px">
+                      Votes: {getAccomodationVotes(topVotedAccommodation?.id)}
+                    </StyledText>
                   </div>
-                  <StyledText fontWeight={500} fontSize="14px">
-                    Ksh {topVotedAccommodation?.price}
-                  </StyledText>
+                  <div>
+                    <div
+                      style={{
+                        ...styles.flexRowCenter,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <img
+                        src={require('../../../../Assets/Icons/rating.png')}
+                        alt=''
+                        style={{ width: 20, marginRight: 5 }}
+                      />
+                      <StyledText fontSize="14px">
+                        {topVotedAccommodation?.rating}
+                      </StyledText>
+                    </div>
+                    <StyledText fontWeight={500} fontSize="14px">
+                      Ksh {topVotedAccommodation?.price}
+                    </StyledText>
+                  </div>
                 </div>
               </div>
             </div>
-          </div> : (
+          ) : (
             <StyledText>No votes yet</StyledText>
           )}
         </div>
@@ -211,7 +226,11 @@ export default function OrganizerView({
             }}
           >
             <div style={styles.accommodationBox}>
-              <img src={accommodation?.image} style={styles.accommodationImg} />
+              <img
+                src={accommodation?.image?.[0]}
+                alt=''
+                style={styles.accommodationImg}
+              />
               <div
                 style={{
                   paddingLeft: 10,
@@ -221,8 +240,12 @@ export default function OrganizerView({
                 }}
               >
                 <div>
-                  <StyledText fontWeight={600}>{accommodation?.name}</StyledText>
-                  <StyledText fontSize="14px">Votes: {getAccomodationVotes(accommodation?.id)}</StyledText>
+                  <StyledText fontWeight={600}>
+                    {accommodation?.name}
+                  </StyledText>
+                  <StyledText fontSize="14px">
+                    Votes: {getAccomodationVotes(accommodation?.id)}
+                  </StyledText>
                 </div>
                 <div>
                   <div
@@ -233,9 +256,12 @@ export default function OrganizerView({
                   >
                     <img
                       src={require('../../../../Assets/Icons/rating.png')}
+                      alt=''
                       style={{ width: 20, marginRight: 5 }}
                     />
-                    <StyledText fontSize="14px">{accommodation?.rating}</StyledText>
+                    <StyledText fontSize="14px">
+                      {accommodation?.rating}
+                    </StyledText>
                   </div>
                   <StyledText fontWeight={500} fontSize="14px">
                     Ksh {accommodation?.price}

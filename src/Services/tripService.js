@@ -41,11 +41,7 @@ const createTrip = async (
     });
 };
 
-const updateTripDate = async (
-    trip_id,
-    selected_date,
-    jwtToken,
-) => {
+const updateTripDate = async (trip_id, selected_date, jwtToken) => {
   return axios
     .patch(
       `${BASE_URL}/trips/create`,
@@ -72,9 +68,9 @@ const updateTripDate = async (
 };
 
 const updateTripAccomodation = async (
-    trip_id,
-    selected_accomodation,
-    jwtToken,
+  trip_id,
+  selected_accomodation,
+  jwtToken,
 ) => {
   return axios
     .patch(
@@ -343,18 +339,15 @@ const completeInvite = async (trip_id, jwtToken) => {
 };
 
 const inviteeUpdatePreferredDate = async (
-    trip_id, 
-    selected_available_startdate,
-    selected_available_enddate, 
-    jwtToken
+  trip_id,
+  selected_available_startdate,
+  selected_available_enddate,
+  jwtToken,
 ) => {
   return axios
     .patch(
       `${BASE_URL}/trips/invitee_update_trip`,
-      { trip_id, 
-        selected_available_startdate,
-        selected_available_enddate 
-        },
+      { trip_id, selected_available_startdate, selected_available_enddate },
       {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
@@ -374,18 +367,15 @@ const inviteeUpdatePreferredDate = async (
 };
 
 const inviteeUpdatePreferredAccomodation = async (
-    trip_id, 
-    selected_accomodation_id,
-    selected_accomodation_reason, 
-    jwtToken
+  trip_id,
+  selected_accomodation_id,
+  selected_accomodation_reason,
+  jwtToken,
 ) => {
   return axios
     .patch(
       `${BASE_URL}/trips/invitee_update_trip`,
-      { trip_id, 
-        selected_accomodation_id,
-        selected_accomodation_reason 
-        },
+      { trip_id, selected_accomodation_id, selected_accomodation_reason },
       {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
@@ -396,7 +386,10 @@ const inviteeUpdatePreferredAccomodation = async (
       return response.data;
     })
     .catch((error) => {
-      console.error('inviteeUpdatePreferredAccomodation error =>', error?.response);
+      console.error(
+        'inviteeUpdatePreferredAccomodation error =>',
+        error?.response,
+      );
       return {
         success: false,
         error: error,
@@ -420,5 +413,5 @@ export const tripService = {
   inviteeUpdatePreferredAccomodation,
   updateTripDate,
   updateTripAccomodation,
-  getTopVotedDate
+  getTopVotedDate,
 };

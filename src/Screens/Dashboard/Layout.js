@@ -1,11 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useRecoilValue } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 
 import StyledText from '../../Components/Common/StyledText';
 import Trips from './Trips';
 import Settings from './Settings';
-import { UserData } from '../../State/atoms/auth';
 import { capitalizeFLetter } from '../../Utils/helpers';
 
 const menus = [
@@ -16,7 +14,7 @@ const menus = [
     component: <Trips />,
   },
   {
-    title: 'Settings',
+    title: 'Travel Documents',
     icon: require('../../Assets/Images/settings.png'),
     name: 'settings',
     component: <Settings />,
@@ -25,19 +23,20 @@ const menus = [
 
 export default function Dashboard() {
   const [activeMenu, setActiveMenu] = useState('dashboard');
-  const userData = useRecoilValue(UserData);
+  // const userData = useRecoilValue(UserData);
+  const userData = JSON.parse(localStorage.getItem('userData'));
   const navigate = useNavigate();
 
   const activeDisplay = useMemo(() => {
     return menus.find((menu) => menu.name === activeMenu);
-  }, [menus, activeMenu]);
+  }, [activeMenu]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token');
     if (!token) {
       navigate('/Login');
     }
-  }, [userData]);
+  }, [userData, navigate]);
 
   return (
     <div style={styles.flex}>
@@ -45,6 +44,7 @@ export default function Dashboard() {
         <div style={styles.flexCenter}>
           <img
             src={require('../../Assets/Images/travel-tech-logo.png')}
+            alt=''
             style={styles.img}
           />
           <StyledText fontSize="20px" fontWeight={700}>
@@ -83,7 +83,7 @@ export default function Dashboard() {
             - Vote on your preferred accommodation
           </StyledText>
         </div>
-        {/* <div style={styles.mgT10}>
+        <div style={styles.mgT10}>
           {menus.map((menu, index) => (
             <div
               style={{
@@ -96,13 +96,13 @@ export default function Dashboard() {
               key={index}
               onClick={() => setActiveMenu(menu.name)}
             >
-              <img src={menu.icon} style={styles.mgR20} />
+              <img src={menu.icon} style={styles.mgR20} alt='' />
               <StyledText fontWeight={activeMenu === menu.name ? 600 : 400}>
                 {menu.title}
               </StyledText>
             </div>
           ))}
-        </div> */}
+        </div>
       </div>
       <div style={styles.content}>
         <div>{activeDisplay.component}</div>

@@ -13,58 +13,8 @@ import Trip from './trip';
 import 'react-calendar/dist/Calendar.css';
 import 'rc-checkbox/assets/index.css';
 import '../../../App.css';
-import { JwtTokenState, UserData } from '../../../State/atoms/auth';
-import { useRecoilValue } from 'recoil';
 import { capitalizeFLetter } from '../../../Utils/helpers';
-import { authService } from '../../../Services/authService';
 import { tripService } from '../../../Services/tripService';
-
-const trips = [
-  {
-    name: 'Diani trip',
-    location: 'Diani beach',
-    id: 1,
-    image: require('../../../Assets/Images/Diani_Beach.jpg'),
-    tellers: [
-      {
-        name: 'Brian Kamau',
-        active: true,
-      },
-      {
-        name: 'Mwangi Wairia',
-        active: false,
-      },
-    ],
-    color: 'rgba(25, 184, 123, 0.60)',
-  },
-  {
-    name: 'Mount Suswa Retreat',
-    location: 'Suswa',
-    id: 1,
-    image: require('../../../Assets/Images/Mount-Suswa.jpg'),
-    tellers: [
-      {
-        name: 'Omondi Onyango',
-        active: true,
-      },
-    ],
-    color: 'rgba(100, 224, 03, 0.60)',
-  },
-  {
-    name: 'Lake Kivu',
-    location: 'Kivu area',
-    id: 1,
-    image: require('../../../Assets/Images/lake-kivu-rwanda.jpg'),
-    tellers: [
-      {
-        name: 'Omondi Onyango',
-        active: true,
-      },
-    ],
-    color: 'rgba(100, 224, 03, 0.60)',
-    invited: true,
-  },
-];
 
 export default function Trips() {
   const [selectedTrip, setSelectedTrip] = useState();
@@ -84,9 +34,9 @@ export default function Trips() {
   const [prefferedDate, setPrefferedDate] = useState(new Date());
   // const userData = useRecoilValue(UserData);
   // const jwtToken = useRecoilValue(JwtTokenState);
-  const jwtToken = localStorage.getItem('token')
-  const userData = JSON.parse(localStorage.getItem('userData'))
-  
+  const jwtToken = localStorage.getItem('token');
+  const userData = JSON.parse(localStorage.getItem('userData'));
+
   const [userTrips, setUserTrips] = useState([]);
   const [invitedTrips, setInvitedTrips] = useState([]);
   const [acceptedTrips, setAcceptedTrips] = useState([]);
@@ -101,8 +51,7 @@ export default function Trips() {
     tripService.getAcceptedTrips(jwtToken).then((res) => {
       setAcceptedTrips(res.data || []);
     });
-  }, [isSuccessful, tripUpdated]);
-
+  }, [isSuccessful, tripUpdated, jwtToken]);
 
   const filteredUserTrips = useMemo(() => {
     if (!userTripsSearchPhrase) {
@@ -127,22 +76,22 @@ export default function Trips() {
       return invitedTrips;
     } else {
       return invitedTrips.filter((item) =>
-      item.name
-      .toUpperCase()
-      .replaceAll(' ', '')
-      .includes(
-        invitedTripsSearchPhrase
-        .toUpperCase()
-        .trim()
-        .replaceAll(' ', '')
-        .replace(/\s/g, ''),
+        item.name
+          .toUpperCase()
+          .replaceAll(' ', '')
+          .includes(
+            invitedTripsSearchPhrase
+              .toUpperCase()
+              .trim()
+              .replaceAll(' ', '')
+              .replace(/\s/g, ''),
           ),
-          );
-        }
-      }, [invitedTripsSearchPhrase, invitedTrips]);
+      );
+    }
+  }, [invitedTripsSearchPhrase, invitedTrips]);
 
   const filteredAcceptedTrips = useMemo(() => {
-    if (!invitedTripsSearchPhrase) {
+    if (!acceptedTripsSearchPhrase) {
       return acceptedTrips;
     } else {
       return acceptedTrips.filter((item) =>
@@ -254,53 +203,55 @@ export default function Trips() {
               <div style={styles.filter}>
                 <img
                   src={require('../../../Assets/Images/filter.png')}
+                  alt=''
                   style={styles.filterImg}
                 />
                 <StyledText>Filter</StyledText>
               </div>
             </div>
             <div style={{ marginTop: 50, display: 'flex', flexWrap: 'wrap' }}>
-              {filteredUserTrips
-                ?.map((trip, index) => (
-                  <div
-                    style={styles.tripBox}
-                    key={index}
-                    onClick={() => setSelectedTrip(trip)}
-                  >
-                    <div
-                      style={styles.tripBoxImg}
-                    >
-                      <img
-                        src={trip?.image || require('../../../Assets/Images/Diani_Beach.jpg')}
-                        style={{
-                          width: 275,
-                          height: '100%',
-                          borderRadius: '10px 10px 0 0',
-                        }}
-                      />
-                      <div style={{ position: 'relative', top: -50, left: 10 }}>
-                        <div style={styles.avatar}>
-                          <StyledText fontSize="20px" fontWeight={700}>
-                            {trip?.name?.[0]}
-                          </StyledText>
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ padding: 10 }}>
-                      <StyledText fontWeight={700} fontSize="18px">
-                        {trip?.name}
-                      </StyledText>
-                      <div style={styles.flexRowCenter}>
-                        <img
-                          src={require('../../../Assets/Images/location.png')}
-                          alt="loc"
-                          style={{ width: 20, height: 20, marginRight: 5 }}
-                        />
-                        <StyledText>{trip?.destination}</StyledText>
+              {filteredUserTrips?.map((trip, index) => (
+                <div
+                  style={styles.tripBox}
+                  key={index}
+                  onClick={() => setSelectedTrip(trip)}
+                >
+                  <div style={styles.tripBoxImg}>
+                    <img
+                      src={
+                        trip?.image ||
+                        require('../../../Assets/Images/Diani_Beach.jpg')
+                      }
+                      alt=''
+                      style={{
+                        width: 275,
+                        height: '100%',
+                        borderRadius: '10px 10px 0 0',
+                      }}
+                    />
+                    <div style={{ position: 'relative', top: -50, left: 10 }}>
+                      <div style={styles.avatar}>
+                        <StyledText fontSize="20px" fontWeight={700}>
+                          {trip?.name?.[0]}
+                        </StyledText>
                       </div>
                     </div>
                   </div>
-                ))}
+                  <div style={{ padding: 10 }}>
+                    <StyledText fontWeight={700} fontSize="18px">
+                      {trip?.name}
+                    </StyledText>
+                    <div style={styles.flexRowCenter}>
+                      <img
+                        src={require('../../../Assets/Images/location.png')}
+                        alt="loc"
+                        style={{ width: 20, height: 20, marginRight: 5 }}
+                      />
+                      <StyledText>{trip?.destination}</StyledText>
+                    </div>
+                  </div>
+                </div>
+              ))}
               <div
                 style={styles.addBox}
                 onClick={() => {
@@ -332,53 +283,61 @@ export default function Trips() {
               <div style={styles.filter}>
                 <img
                   src={require('../../../Assets/Images/filter.png')}
+                  alt=''
                   style={styles.filterImg}
                 />
                 <StyledText>Filter</StyledText>
               </div>
             </div>
             <div style={{ marginTop: 50, display: 'flex', flexWrap: 'wrap' }}>
-              {filteredInvitedTrips
-                ?.map((trip, index) => (
-                  <div
-                    style={styles.tripBox}
-                    key={index}
-                    onClick={() => setSelectedTrip({...trip.trip, invite_accepted: trip.invite_accepted, invite_status: trip.invite_status})}
-                  >
-                    <div
-                      style={styles.tripBoxImg}
-                    >
-                      <img
-                        src={trip?.trip?.image || require('../../../Assets/Images/Diani_Beach.jpg')}
-                        style={{
-                          width: 275,
-                          height: '100%',
-                          borderRadius: '10px 10px 0 0',
-                        }}
-                      />
-                      <div style={{ position: 'relative', top: -50, left: 10 }}>
-                        <div style={styles.avatar}>
-                          <StyledText fontSize="20px" fontWeight={700}>
-                            {trip?.trip?.name?.[0]}
-                          </StyledText>
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ padding: 10 }}>
-                      <StyledText fontWeight={700} fontSize="18px">
-                        {trip?.trip?.name}
-                      </StyledText>
-                      <div style={styles.flexRowCenter}>
-                        <img
-                          src={require('../../../Assets/Images/location.png')}
-                          alt="loc"
-                          style={{ width: 20, height: 20, marginRight: 5 }}
-                        />
-                        <StyledText>{trip?.trip?.destination}</StyledText>
+              {filteredInvitedTrips?.map((trip, index) => (
+                <div
+                  style={styles.tripBox}
+                  key={index}
+                  onClick={() =>
+                    setSelectedTrip({
+                      ...trip.trip,
+                      invite_accepted: trip.invite_accepted,
+                      invite_status: trip.invite_status,
+                    })
+                  }
+                >
+                  <div style={styles.tripBoxImg}>
+                    <img
+                      src={
+                        trip?.trip?.image ||
+                        require('../../../Assets/Images/Diani_Beach.jpg')
+                      }
+                      alt=''
+                      style={{
+                        width: 275,
+                        height: '100%',
+                        borderRadius: '10px 10px 0 0',
+                      }}
+                    />
+                    <div style={{ position: 'relative', top: -50, left: 10 }}>
+                      <div style={styles.avatar}>
+                        <StyledText fontSize="20px" fontWeight={700}>
+                          {trip?.trip?.name?.[0]}
+                        </StyledText>
                       </div>
                     </div>
                   </div>
-                ))}
+                  <div style={{ padding: 10 }}>
+                    <StyledText fontWeight={700} fontSize="18px">
+                      {trip?.trip?.name}
+                    </StyledText>
+                    <div style={styles.flexRowCenter}>
+                      <img
+                        src={require('../../../Assets/Images/location.png')}
+                        alt="loc"
+                        style={{ width: 20, height: 20, marginRight: 5 }}
+                      />
+                      <StyledText>{trip?.trip?.destination}</StyledText>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <div>
@@ -394,53 +353,61 @@ export default function Trips() {
               <div style={styles.filter}>
                 <img
                   src={require('../../../Assets/Images/filter.png')}
+                  alt=''
                   style={styles.filterImg}
                 />
                 <StyledText>Filter</StyledText>
               </div>
             </div>
             <div style={{ marginTop: 50, display: 'flex', flexWrap: 'wrap' }}>
-              {filteredAcceptedTrips
-                ?.map((trip, index) => (
-                  <div
-                    style={styles.tripBox}
-                    key={index}
-                    onClick={() => setSelectedTrip({...trip.trip, invite_accepted: trip.invite_accepted, invite_status: trip.invite_status})}
-                  >
-                    <div
-                      style={styles.tripBoxImg}
-                    >
-                      <img
-                        src={trip?.image || require('../../../Assets/Images/Diani_Beach.jpg')}
-                        style={{
-                          width: 275,
-                          height: '100%',
-                          borderRadius: '10px 10px 0 0',
-                        }}
-                      />
-                      <div style={{ position: 'relative', top: -50, left: 10 }}>
-                        <div style={styles.avatar}>
-                          <StyledText fontSize="20px" fontWeight={700}>
-                            {trip?.trip?.name?.[0]}
-                          </StyledText>
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ padding: 10 }}>
-                      <StyledText fontWeight={700} fontSize="18px">
-                        {trip?.trip?.name}
-                      </StyledText>
-                      <div style={styles.flexRowCenter}>
-                        <img
-                          src={require('../../../Assets/Images/location.png')}
-                          alt="loc"
-                          style={{ width: 20, height: 20, marginRight: 5 }}
-                        />
-                        <StyledText>{trip?.trip?.destination}</StyledText>
+              {filteredAcceptedTrips?.map((trip, index) => (
+                <div
+                  style={styles.tripBox}
+                  key={index}
+                  onClick={() =>
+                    setSelectedTrip({
+                      ...trip.trip,
+                      invite_accepted: trip.invite_accepted,
+                      invite_status: trip.invite_status,
+                    })
+                  }
+                >
+                  <div style={styles.tripBoxImg}>
+                    <img
+                      src={
+                        trip?.image ||
+                        require('../../../Assets/Images/Diani_Beach.jpg')
+                      }
+                      alt=''
+                      style={{
+                        width: 275,
+                        height: '100%',
+                        borderRadius: '10px 10px 0 0',
+                      }}
+                    />
+                    <div style={{ position: 'relative', top: -50, left: 10 }}>
+                      <div style={styles.avatar}>
+                        <StyledText fontSize="20px" fontWeight={700}>
+                          {trip?.trip?.name?.[0]}
+                        </StyledText>
                       </div>
                     </div>
                   </div>
-                ))}
+                  <div style={{ padding: 10 }}>
+                    <StyledText fontWeight={700} fontSize="18px">
+                      {trip?.trip?.name}
+                    </StyledText>
+                    <div style={styles.flexRowCenter}>
+                      <img
+                        src={require('../../../Assets/Images/location.png')}
+                        alt="loc"
+                        style={{ width: 20, height: 20, marginRight: 5 }}
+                      />
+                      <StyledText>{trip?.trip?.destination}</StyledText>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -538,7 +505,7 @@ export default function Trips() {
                     label={'Create trip'}
                     width={450}
                     onClick={() => {
-                      setIsSuccessful(true)
+                      setIsSuccessful(true);
                     }}
                   />
                 </div>

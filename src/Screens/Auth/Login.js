@@ -27,8 +27,8 @@ export default function Login() {
       if (res.status === 200) {
         setJwt_token(res.token);
         const decoded = jwt_decode(res.token);
-        localStorage.setItem('token', res.token)
-        localStorage.setItem('userData', JSON.stringify(decoded))
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('userData', JSON.stringify(decoded));
         setUserData(decoded);
         navigate('/Dashboard');
       } else {
@@ -46,6 +46,7 @@ export default function Login() {
         <div style={styles.flexCenter}>
           <img
             src={require('../../Assets/Images/travel-tech-logo.png')}
+            alt=''
             style={styles.img}
           />
           <StyledText fontSize="20px" fontWeight={700}>

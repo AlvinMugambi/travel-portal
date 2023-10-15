@@ -13,37 +13,36 @@ export default function InviteeView({
   setPreviewAccommodation,
   setModalVisible,
   getAccomodationVotes,
-  setTripUpdated
+  setTripUpdated,
 }) {
-
-  const jwtToken = localStorage.getItem('token')
-  const userData = JSON.parse(localStorage.getItem('userData'))
-  const [attendees, setAttendees] = useState([])
+  const jwtToken = localStorage.getItem('token');
+  const userData = JSON.parse(localStorage.getItem('userData'));
+  const [attendees, setAttendees] = useState([]);
   const [prefferedDate, setPrefferedDate] = useState(new Date());
 
   useEffect(() => {
     tripService.getTripAttendees(selectedTrip.id, jwtToken).then((res) => {
       setAttendees(res.data || []);
     });
-  }, [inviteStatus]);
+  }, [inviteStatus, jwtToken, selectedTrip.id]);
 
   const acceptInvite = () => {
-    tripService.acceptInvite(selectedTrip.id, jwtToken).then(res => {
-      console.log("acceptInvite res===>", res);
+    tripService.acceptInvite(selectedTrip.id, jwtToken).then((res) => {
+      console.log('acceptInvite res===>', res);
       setInviteStatus('accepted');
-    })
-  }
+    });
+  };
   const denyInvite = () => {
-    tripService.denyInvite(selectedTrip.id, jwtToken).then(res => {
-      console.log("denyInvite res===>", res);
+    tripService.denyInvite(selectedTrip.id, jwtToken).then((res) => {
+      console.log('denyInvite res===>', res);
       setInviteStatus('denied');
-    })
-  }
+    });
+  };
 
   const inviteeUpdatePreferredDate = () => {
     let startDate;
     let endDate;
-    if(Array.isArray(prefferedDate)){
+    if (Array.isArray(prefferedDate)) {
       startDate = format(new Date(prefferedDate[0]), 'yyyy-MM-dd');
       endDate = format(new Date(prefferedDate[1]), 'yyyy-MM-dd');
     } else {
@@ -51,26 +50,26 @@ export default function InviteeView({
       endDate = format(new Date(prefferedDate), 'yyyy-MM-dd');
     }
 
-    tripService.inviteeUpdatePreferredDate(
-      selectedTrip.id, 
-      startDate,
-      endDate,
-      jwtToken
-    ).then(res => {
-      console.log('res===>', res)
-    })
-  }
+    tripService
+      .inviteeUpdatePreferredDate(selectedTrip.id, startDate, endDate, jwtToken)
+      .then((res) => {
+        console.log('res===>', res);
+      });
+  };
 
   const completeInvite = () => {
-    inviteeUpdatePreferredDate()
-    tripService.completeInvite(selectedTrip.id, jwtToken).then(res => {
-      console.log("completeInvite res===>", res);
-      setInviteStatus('done')
-      setTripUpdated((prev) => !prev)
-    })
-  }
+    inviteeUpdatePreferredDate();
+    tripService.completeInvite(selectedTrip.id, jwtToken).then((res) => {
+      console.log('completeInvite res===>', res);
+      setInviteStatus('done');
+      setTripUpdated((prev) => !prev);
+    });
+  };
 
-  const confirmedAttendees = useMemo(() => attendees.filter(a => a.invite_accepted), [attendees])
+  const confirmedAttendees = useMemo(
+    () => attendees.filter((a) => a.invite_accepted),
+    [attendees],
+  );
   return (
     <>
       <div>
@@ -78,19 +77,23 @@ export default function InviteeView({
           Confirmed attendees
         </StyledText>
         <div style={{ ...styles.flexRowCenter, flexWrap: 'wrap' }}>
-        {confirmedAttendees.length ? (
+          {confirmedAttendees.length ? (
             confirmedAttendees.map((attendee) => (
               <div style={styles.attendee}>
                 <div style={{ ...styles.avatar, width: 50, height: 50 }}>
                   {attendee?.attendee?.username[0]?.toUpperCase()}
                 </div>
-                <StyledText>{attendee?.attendee?.username === userData?.username ? 'You' : attendee?.attendee?.username}</StyledText>
+                <StyledText>
+                  {attendee?.attendee?.username === userData?.username
+                    ? 'You'
+                    : attendee?.attendee?.username}
+                </StyledText>
               </div>
             ))
           ) : (
             <StyledText>No confirmed attendees yet</StyledText>
           )}
-          </div>
+        </div>
       </div>
       {inviteStatus === 'pending' && (
         <div>
@@ -108,7 +111,7 @@ export default function InviteeView({
               width={100}
               height={30}
               onClick={() => {
-                acceptInvite()
+                acceptInvite();
               }}
             />
             <Button
@@ -117,7 +120,7 @@ export default function InviteeView({
               height={30}
               backgroundColor="red"
               onClick={() => {
-                denyInvite()
+                denyInvite();
               }}
             />
           </div>
@@ -132,27 +135,32 @@ export default function InviteeView({
           >
             Invite accepted
           </StyledText>
-          {selectedTrip.date_is_locked ?
-          <div style={{marginTop: 20, marginBottom: 20}}>
-          <StyledText>Date is fixed on:</StyledText>
-          <StyledText>{format(new Date(selectedTrip.end_date), 'PPP')}</StyledText>
-        </div>: 
-          <>
-            <StyledText>Please select your preferred date</StyledText>
-            <Calendar
-              minDate={new Date(selectedTrip.start_date)}
-              maxDate={new Date(selectedTrip.end_date)}
-              onChange={setPrefferedDate}
-              value={prefferedDate}
-              selectRange
-            />
-          </>}
+          {selectedTrip.date_is_locked ? (
+            <div style={{ marginTop: 20, marginBottom: 20 }}>
+              <StyledText>Date is fixed on:</StyledText>
+              <StyledText>
+                {format(new Date(selectedTrip.end_date), 'PPP')}
+              </StyledText>
+            </div>
+          ) : (
+            <>
+              <StyledText>Please select your preferred date</StyledText>
+              <Calendar
+                minDate={new Date(selectedTrip.start_date)}
+                maxDate={new Date(selectedTrip.end_date)}
+                onChange={setPrefferedDate}
+                value={prefferedDate}
+                selectRange
+              />
+            </>
+          )}
           <StyledText customStyle={{ marginTop: 20, marginBottom: 10 }}>
             Please select your preferred accommodation
           </StyledText>
           <StyledText fontSize="13px">
-            Based on the number of attendees, and the selected date, here
-            are the top recommendations for accommodation in {selectedTrip.destination}
+            Based on the number of attendees, and the selected date, here are
+            the top recommendations for accommodation in{' '}
+            {selectedTrip.destination}
           </StyledText>
           <div style={styles.acommodationView}>
             {accommodations.map((accommodation) => (
@@ -166,7 +174,8 @@ export default function InviteeView({
               >
                 <div style={styles.accommodationBox}>
                   <img
-                    src={accommodation?.image}
+                    src={accommodation?.image?.[0]}
+                    alt=''
                     style={styles.accommodationImg}
                   />
                   <div
@@ -178,8 +187,12 @@ export default function InviteeView({
                     }}
                   >
                     <div>
-                      <StyledText fontWeight={600}>{accommodation?.name}</StyledText>
-                      <StyledText fontSize="14px">Votes: {getAccomodationVotes(accommodation?.id)}</StyledText>
+                      <StyledText fontWeight={600}>
+                        {accommodation?.name}
+                      </StyledText>
+                      <StyledText fontSize="14px">
+                        Votes: {getAccomodationVotes(accommodation?.id)}
+                      </StyledText>
                     </div>
                     <div>
                       <div
@@ -190,12 +203,15 @@ export default function InviteeView({
                       >
                         <img
                           src={require('../../../../Assets/Icons/rating.png')}
+                          alt=''
                           style={{ width: 20, marginRight: 5 }}
                         />
-                        <StyledText fontSize="14px">{accommodation?.rating}</StyledText>
+                        <StyledText fontSize="14px">
+                          {accommodation?.rating}
+                        </StyledText>
                       </div>
                       <StyledText fontWeight={500} fontSize="14px">
-                        Ksh {accommodation?.price} 
+                        Ksh {accommodation?.price}
                       </StyledText>
                     </div>
                   </div>
@@ -203,12 +219,14 @@ export default function InviteeView({
               </div>
             ))}
           </div>
-          <div style={{display: 'flex', justifyContent: 'center', marginTop: 20}}>
+          <div
+            style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}
+          >
             <Button
               label={'Done'}
               width={400}
               onClick={() => {
-                completeInvite()
+                completeInvite();
               }}
             />
           </div>
@@ -232,7 +250,7 @@ export default function InviteeView({
             fontWeight={600}
             customStyle={{ marginTop: 15, marginBottom: 15 }}
           >
-            Great! Your votes have been sent to the organiser of the trip. 
+            Great! Your votes have been sent to the organiser of the trip.
           </StyledText>
         </div>
       )}

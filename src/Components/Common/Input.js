@@ -13,9 +13,11 @@ export default function Input({
 }) {
   return (
     <div style={{ ...customStyles }}>
-      {label && <StyledText fontSize="16px" fontWeight={400}>
-        {label}
-      </StyledText>}
+      {label && (
+        <StyledText fontSize="16px" fontWeight={400}>
+          {label}
+        </StyledText>
+      )}
       {textArea ? (
         <textarea
           style={{ ...styles.input, width, height: 60, paddingTop: 10 }}

@@ -22,7 +22,7 @@ const validateEmail = (email) => {
 export default function Register() {
   const [email, setEmailAddress] = useState('');
   const [username, setUsername] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  //   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const setJwt_token = useSetRecoilState(JwtTokenState);
@@ -36,13 +36,13 @@ export default function Register() {
       return;
     }
     setLoading(true);
-    authService.register(email, username, phoneNumber, password).then((res) => {
+    authService.register(email, username, '', password).then((res) => {
       setLoading(false);
       if (res.status === 201) {
         setJwt_token(res.token);
         const decoded = jwt_decode(res.token);
-        localStorage.setItem('token', res.token)
-        localStorage.setItem('userData', JSON.stringify(decoded))
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('userData', JSON.stringify(decoded));
         setUserData(decoded);
         navigate('/Dashboard');
       } else {
@@ -61,6 +61,7 @@ export default function Register() {
         <div style={styles.flexCenter}>
           <img
             src={require('../../Assets/Images/travel-tech-logo.png')}
+            alt=''
             style={styles.img}
           />
           <StyledText fontSize="20px" fontWeight={700}>

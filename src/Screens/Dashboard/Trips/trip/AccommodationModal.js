@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import { Carousel } from 'react-responsive-carousel';
-import ReactHover, {Trigger, Hover} from 'react-hover';
 
 import Modal from '../../../../Components/Common/Modal';
 import StyledText from '../../../../Components/Common/StyledText';
@@ -9,69 +8,49 @@ import Button from '../../../../Components/Common/Button';
 import { tripService } from '../../../../Services/tripService';
 import Input from '../../../../Components/Common/Input';
 
-const HoverableDiv = ({ handleMouseOver, handleMouseOut }) => {
-  return (
-    <div onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
-                        <div style={styles.attendee}>
-                    <div style={{ ...styles.avatar, width: 40, height: 40 }}>
-                      A
-                    </div>
-                    <StyledText fontSize="14px">Alvin</StyledText>
-                  </div>
-    </div>
-  );
-};
 
 export default function AccommodationModal({
   accommodation,
   modalVisible,
   setModalVisible,
   tripRegister,
-  isTripOrganiser
+  isTripOrganiser,
 }) {
-  const [isHovering, setIsHovering] = useState(false);
-  const [hoverId, setHoverId] = useState(false);
+  const [reason, setReason] = useState('');
+  const votedUsers = useMemo(
+    () => tripRegister.filter((x) => !!x.selected_accomodation_id),
+    [tripRegister],
+  );
 
-  const handleMouseOver = () => {
-    setIsHovering(true);
-  };
-
-  console.log("tripRegister===>", tripRegister);
-
-  const handleMouseOut = () => {
-    setIsHovering(false);
-  };
-
-  const [reason, setReason] = useState('')
-  const votedUsers = useMemo(() => 
-    tripRegister.filter(x => !!x.selected_accomodation_id)
-  , [tripRegister])
-
-  const jwtToken = localStorage.getItem('token')
+  const jwtToken = localStorage.getItem('token');
 
   const inviteeSelectAccomodation = () => {
-    console.log("here");
-    tripService.inviteeUpdatePreferredAccomodation(
-      tripRegister?.[0]?.trip?.id, 
-      accommodation.id,
-      reason,
-      jwtToken
-    ).then(res => {
-      console.log('res===>', res)
-      setModalVisible(false)
-    })
-  }
+    console.log('here');
+    tripService
+      .inviteeUpdatePreferredAccomodation(
+        tripRegister?.[0]?.trip?.id,
+        accommodation.id,
+        reason,
+        jwtToken,
+      )
+      .then((res) => {
+        console.log('res===>', res);
+        setModalVisible(false);
+      });
+  };
 
   const organiserSelectAccomodation = () => {
-    tripService.updateTripAccomodation(
-      tripRegister?.[0]?.trip?.id, 
-      accommodation.id,
-      jwtToken
-    ).then(res => {
-      console.log('res===>', res)
-      setModalVisible(false)
-    })
-  }
+    tripService
+      .updateTripAccomodation(
+        tripRegister?.[0]?.trip?.id,
+        accommodation.id,
+        jwtToken,
+      )
+      .then((res) => {
+        console.log('res===>', res);
+        setModalVisible(false);
+      });
+  };
 
   return (
     <Modal
@@ -93,9 +72,12 @@ export default function AccommodationModal({
               alt="loc"
               style={{ width: 15, height: 15, marginRight: 5, marginLeft: 20 }}
             />
-            <StyledText fontSize="15px">{accommodation?.address.street}</StyledText>
+            <StyledText fontSize="15px">
+              {accommodation?.address.street}
+            </StyledText>
             <img
               src={require('../../../../Assets/Icons/rating.png')}
+              alt=''
               style={{ width: 20, marginRight: 5, marginLeft: 20 }}
             />
             <StyledText fontSize="14px">{accommodation?.rating}</StyledText>
@@ -118,24 +100,11 @@ export default function AccommodationModal({
               showStatus={false}
               showThumbs={false}
             >
-              <div>
-                <img
-                  style={styles.carouselImg}
-                  src={require('../../../../Assets/Images/Diani_Beach.jpg')}
-                />
-              </div>
-              <div>
-                <img
-                  style={styles.carouselImg}
-                  src={require('../../../../Assets/Images/Diani_Beach.jpg')}
-                />
-              </div>
-              <div>
-                <img
-                  style={styles.carouselImg}
-                  src={require('../../../../Assets/Images/Diani_Beach.jpg')}
-                />
-              </div>
+              {accommodation?.image.map((image) => (
+                <div>
+                  <img style={styles.carouselImg} src={image} alt='' />
+                </div>
+              ))}
             </Carousel>
           </div>
           <div style={styles.padLR20}>
@@ -168,40 +137,63 @@ export default function AccommodationModal({
               Leisure Lodge Golf Club is 10 km from the property. The nearest
               airport is Ukunda Airport, 8 km from the hotel.
             </StyledText>
-            {!!votedUsers.length ? 
-            <>
-            <StyledText
-              fontSize="20px"
-              fontWeight={600}
-              customStyle={{ marginTop: 30 }}
-            >
-              Voted by
-            </StyledText>
-            <div style={{...styles.flexRowCenter, ...styles.acommodationView}}>
-                {votedUsers.map(register => (
-                <div style={styles.accommodationCardView}>
-                  <div
-                    style={{...styles.flexRowCenter, border: '1px solid grey', padding: 10, borderRadius: 10}}
-                  >
-                    <div style={{...styles.attendee, borderRight: '1px solid grey', paddingRight: 15}}>
-                      <div style={{ ...styles.avatar, width: 40, height: 40 }}>
-                         {register?.user?.[0]?.toUpperCase()}
+            {!!votedUsers.length ? (
+              <>
+                <StyledText
+                  fontSize="20px"
+                  fontWeight={600}
+                  customStyle={{ marginTop: 30 }}
+                >
+                  Voted by
+                </StyledText>
+                <div
+                  style={{
+                    ...styles.flexRowCenter,
+                    ...styles.acommodationView,
+                  }}
+                >
+                  {votedUsers.map((register) => (
+                    <div style={styles.accommodationCardView}>
+                      <div
+                        style={{
+                          ...styles.flexRowCenter,
+                          border: '1px solid grey',
+                          padding: 10,
+                          borderRadius: 10,
+                        }}
+                      >
+                        <div
+                          style={{
+                            ...styles.attendee,
+                            borderRight: '1px solid grey',
+                            paddingRight: 15,
+                          }}
+                        >
+                          <div
+                            style={{ ...styles.avatar, width: 40, height: 40 }}
+                          >
+                            {register?.user?.[0]?.toUpperCase()}
+                          </div>
+                          <StyledText fontSize="14px">
+                            {register?.user}
+                          </StyledText>
+                        </div>
+                        <StyledText fontSize="14px">
+                          {register?.selected_accomodation_reason}
+                        </StyledText>
                       </div>
-                      <StyledText fontSize="14px">{register?.user}</StyledText>
                     </div>
-                    <StyledText fontSize="14px">{register?.selected_accomodation_reason}</StyledText>
-                  </div>
+                  ))}
                 </div>
-                ))}
-            </div>
-            </> : (
-            <StyledText
-            fontSize="18px"
-            fontWeight={600}
-            customStyle={{ marginTop: 50 }}
-          >
-            No votes on this accomodation yet
-          </StyledText>
+              </>
+            ) : (
+              <StyledText
+                fontSize="18px"
+                fontWeight={600}
+                customStyle={{ marginTop: 50 }}
+              >
+                No votes on this accomodation yet
+              </StyledText>
             )}
           </div>
         </div>
@@ -256,23 +248,37 @@ export default function AccommodationModal({
             ))}
           </div>
         </div>
-        {!tripRegister?.[0]?.trip?.selected_accomodation && <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'flex-end',
-            marginTop: 20,
-            width: '100%',
-            alignItems: 'center'
-          }}
-        >
-          <div style={{marginRight: 30}}>
-            <Input height={50} width={500} customStyles={{border: '1px solid grey', borderRadius: 10}} placeHolder={'State a reason why you prefer this accommodation'} onChange={(e) => setReason(e.target.value)} />
+        {!tripRegister?.[0]?.trip?.selected_accomodation && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              marginTop: 20,
+              width: '100%',
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ marginRight: 30 }}>
+              <Input
+                height={50}
+                width={500}
+                customStyles={{ border: '1px solid grey', borderRadius: 10 }}
+                placeHolder={'State a reason why you prefer this accommodation'}
+                onChange={(e) => setReason(e.target.value)}
+              />
+            </div>
+            <Button
+              label={'Vote for this accommodation'}
+              width={400}
+              onClick={() => {
+                isTripOrganiser
+                  ? organiserSelectAccomodation()
+                  : inviteeSelectAccomodation();
+              }}
+            />
           </div>
-          <Button label={'Vote for this accommodation'} width={400} onClick={() => {
-            isTripOrganiser ? organiserSelectAccomodation() : inviteeSelectAccomodation()
-          }} />
-        </div>}
+        )}
       </div>
     </Modal>
   );
@@ -283,7 +289,7 @@ const styles = {
     padding: 20,
   },
   carouselImg: {
-    width: '100%',
+    width: 550,
     height: 400,
     borderRadius: 10,
   },
