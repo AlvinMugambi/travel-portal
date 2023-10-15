@@ -8,7 +8,7 @@ import { capitalizeFLetter } from '../../Utils/helpers';
 
 const menus = [
   {
-    title: 'Dashboard',
+    title: 'Home',
     icon: require('../../Assets/Images/store.png'),
     name: 'dashboard',
     component: <Trips />,
@@ -41,6 +41,7 @@ export default function Dashboard() {
   return (
     <div style={styles.flex}>
       <div style={styles.drawer}>
+        <div>
         <div style={styles.flexCenter}>
           <img
             src={require('../../Assets/Images/travel-tech-logo.png')}
@@ -66,23 +67,6 @@ export default function Dashboard() {
             </StyledText>
           </div>
         </div>
-        <div style={{ ...styles.mgL20, ...styles.mgT10, ...styles.mgR20 }}>
-          <StyledText fontWeight={400} fontSize="15px">
-            On this dashboard, you can:
-          </StyledText>
-          <StyledText fontWeight={400} fontSize="15px">
-            - Create your own trips
-          </StyledText>
-          <StyledText fontWeight={400} fontSize="15px">
-            - Join trips you have been invited to
-          </StyledText>
-          <StyledText fontWeight={400} fontSize="15px">
-            - Vote on your preferred time for the trip
-          </StyledText>
-          <StyledText fontWeight={400} fontSize="15px">
-            - Vote on your preferred accommodation
-          </StyledText>
-        </div>
         <div style={styles.mgT10}>
           {menus.map((menu, index) => (
             <div
@@ -102,6 +86,24 @@ export default function Dashboard() {
               </StyledText>
             </div>
           ))}
+        </div>
+        </div>
+        <div style={{ ...styles.mgL20, ...styles.mgT10, ...styles.mgR20, paddingBottom: 30 }}>
+          <StyledText fontWeight={400} fontSize="15px">
+            On this dashboard, you can:
+          </StyledText>
+          <StyledText fontWeight={400} fontSize="15px">
+            - Create your own trips
+          </StyledText>
+          <StyledText fontWeight={400} fontSize="15px">
+            - Join trips you have been invited to
+          </StyledText>
+          <StyledText fontWeight={400} fontSize="15px">
+            - Vote on your preferred time for the trip
+          </StyledText>
+          <StyledText fontWeight={400} fontSize="15px">
+            - Vote on your preferred accommodation
+          </StyledText>
         </div>
       </div>
       <div style={styles.content}>
@@ -135,8 +137,9 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     width: '20vw',
-    // height: '100vh',
+    height: '100vh',
     boxShadow: '3px 0px 15px 0px rgba(0, 0, 0, 0.25)',
+    justifyContent: 'space-between',
   },
   merchantInfo: {
     paddingLeft: 20,

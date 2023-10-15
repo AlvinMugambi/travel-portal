@@ -8,7 +8,7 @@ export default function Settings() {
       <div style={styles.header}>
         <div style={styles.flexRowCenter}>
           <StyledText fontSize="30px" fontWeight={700}>
-            Settings
+            Your travel documents
           </StyledText>
         </div>
         <div style={styles.headerRight}>
