@@ -10,6 +10,7 @@ import StyledText from '../../Components/Common/StyledText';
 import FormView from '../../Components/Common/FormView';
 import Input from '../../Components/Common/Input';
 import Button from '../../Components/Common/Button';
+import { useMediaQuery } from 'react-responsive';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -19,6 +20,7 @@ export default function Login() {
   const setUserData = useSetRecoilState(UserData);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
 
   const onSubmit = () => {
     setLoading(true);
@@ -46,7 +48,7 @@ export default function Login() {
         <div style={styles.flexCenter}>
           <img
             src={require('../../Assets/Images/travel-tech-logo.png')}
-            alt=''
+            alt=""
             style={styles.img}
           />
           <StyledText fontSize="20px" fontWeight={700}>
@@ -62,7 +64,7 @@ export default function Login() {
         >
           Welcome back!
         </StyledText>
-        <FormView width={420}>
+        <FormView width={isTabletOrMobile ? '80%' : 'auto'}>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {error && (
               <StyledText fontSize="14px" color="red">
@@ -73,17 +75,17 @@ export default function Login() {
           <div style={styles.input}>
             <StyledText fontSize={16}>Username</StyledText>
             <Input
-              width={410}
-              placeHolder={'Enter username'}
+              width={isTabletOrMobile ? '100%' : 410}
+              placeholder={'Enter username'}
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
           <div style={styles.input}>
             <StyledText fontSize={16}>Password</StyledText>
             <Input
-              width={410}
+              width={isTabletOrMobile ? '100%' : 410}
               type={'password'}
-              placeHolder={'Enter password'}
+              placeholder={'Enter password'}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
@@ -96,7 +98,7 @@ export default function Login() {
                   'Submit'
                 )
               }
-              width={420}
+              width={isTabletOrMobile ? '100%' : 420}
               disabled={!username || !password}
               onClick={onSubmit}
             />

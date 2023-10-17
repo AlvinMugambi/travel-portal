@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
+import 'rc-checkbox/assets/index.css';
 import './index.css';
 import AppRoutes from './Navigation';
 // import AppRoutes from './routes/routes';

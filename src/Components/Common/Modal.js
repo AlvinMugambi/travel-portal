@@ -5,6 +5,7 @@ const Modal = ({
   onClose,
   width,
   height,
+  maxHeight,
   className,
   containerStyle,
   children,
@@ -37,9 +38,11 @@ const Modal = ({
       <div
         style={{
           height: height || 'inherit',
+          maxHeight: maxHeight || 'inherit',
           width: width || 600,
           borderRadius: 10,
           backgroundColor: 'white',
+          overflowY: 'scroll',
         }}
         className={`h-[${height || 'inherit'}] w-[${
           width || '600px'

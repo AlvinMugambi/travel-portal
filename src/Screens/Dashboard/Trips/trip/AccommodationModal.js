@@ -7,7 +7,7 @@ import StyledText from '../../../../Components/Common/StyledText';
 import Button from '../../../../Components/Common/Button';
 import { tripService } from '../../../../Services/tripService';
 import Input from '../../../../Components/Common/Input';
-
+import { useMediaQuery } from 'react-responsive';
 
 export default function AccommodationModal({
   accommodation,
@@ -17,6 +17,7 @@ export default function AccommodationModal({
   isTripOrganiser,
 }) {
   const [reason, setReason] = useState('');
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
   const votedUsers = useMemo(
     () => tripRegister.filter((x) => !!x.selected_accomodation_id),
     [tripRegister],
@@ -56,14 +57,12 @@ export default function AccommodationModal({
     <Modal
       isVisible={modalVisible}
       onClose={() => setModalVisible(false)}
-      width={'80vw'}
+      width={'90vw'}
       height={'93vh'}
     >
-      <div style={styles.pad20}>
-        <div
-          style={{ ...styles.flexRowCenter, justifyContent: 'space-between' }}
-        >
-          <div style={styles.flexRowCenter}>
+      <div className="pad20">
+        <div className="modalheader">
+          <div className="flexRowCenter">
             <StyledText fontSize="25px" fontWeight={600}>
               {accommodation?.name}
             </StyledText>
@@ -77,7 +76,7 @@ export default function AccommodationModal({
             </StyledText>
             <img
               src={require('../../../../Assets/Icons/rating.png')}
-              alt=''
+              alt=""
               style={{ width: 20, marginRight: 5, marginLeft: 20 }}
             />
             <StyledText fontSize="14px">{accommodation?.rating}</StyledText>
@@ -92,8 +91,8 @@ export default function AccommodationModal({
             </StyledText>
           </div>
         </div>
-        <div style={styles.flexRow}>
-          <div>
+        <div className="modalContent">
+          <div style={{ width: '100%' }}>
             <Carousel
               autoPlay
               showIndicators={false}
@@ -102,12 +101,12 @@ export default function AccommodationModal({
             >
               {accommodation?.image.map((image) => (
                 <div>
-                  <img style={styles.carouselImg} src={image} alt='' />
+                  <img className="carouselImg" src={image} alt="" />
                 </div>
               ))}
             </Carousel>
           </div>
-          <div style={styles.padLR20}>
+          <div className="accomodationDetails">
             <StyledText fontSize="20px" fontWeight={600}>
               Description
             </StyledText>
@@ -153,7 +152,7 @@ export default function AccommodationModal({
                   }}
                 >
                   {votedUsers.map((register) => (
-                    <div style={styles.accommodationCardView}>
+                    <div className="accommodationCardView">
                       <div
                         style={{
                           ...styles.flexRowCenter,
@@ -201,14 +200,13 @@ export default function AccommodationModal({
           <StyledText fontSize="20px" fontWeight={600}>
             Available rooms
           </StyledText>
-          <div style={styles.acommodationView}>
+          <div className="acommodationView">
             {accommodation?.rooms?.map((room) => (
               <div
-                className="ripple-btn"
-                style={styles.accommodationCardView}
+                className="ripple-btn accommodationCardView"
                 onClick={() => setModalVisible(true)}
               >
-                <div style={styles.accommodationBox}>
+                <div className="accommodationBox">
                   <div
                     style={{
                       paddingLeft: 10,
@@ -248,29 +246,41 @@ export default function AccommodationModal({
             ))}
           </div>
         </div>
-        {!tripRegister?.[0]?.trip?.selected_accomodation && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-              marginTop: 20,
-              width: '100%',
-              alignItems: 'center',
-            }}
-          >
-            <div style={{ marginRight: 30 }}>
-              <Input
-                height={50}
-                width={500}
-                customStyles={{ border: '1px solid grey', borderRadius: 10 }}
-                placeHolder={'State a reason why you prefer this accommodation'}
-                onChange={(e) => setReason(e.target.value)}
+        {!tripRegister?.[0]?.trip?.selected_accomodation &&
+          !isTripOrganiser && (
+            <div className="voteReasonLayout">
+              <div
+                style={{
+                  marginRight: isTabletOrMobile ? 0 : 30,
+                  marginBottom: isTabletOrMobile ? 10 : 0,
+                }}
+              >
+                <Input
+                  height={50}
+                  width={isTabletOrMobile ? '80vw' : 500}
+                  customStyles={{ border: '1px solid grey', borderRadius: 10 }}
+                  placeHolder={
+                    'State a reason why you prefer this accommodation'
+                  }
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </div>
+              <Button
+                label={'Vote for this accommodation'}
+                width={isTabletOrMobile ? '100%' : 400}
+                onClick={() => {
+                  isTripOrganiser
+                    ? organiserSelectAccomodation()
+                    : inviteeSelectAccomodation();
+                }}
               />
             </div>
+          )}
+        {isTripOrganiser && (
+          <div className="voteReasonLayout">
             <Button
-              label={'Vote for this accommodation'}
-              width={400}
+              label={'Select this accommodation'}
+              width={isTabletOrMobile ? '100%' : 400}
               onClick={() => {
                 isTripOrganiser
                   ? organiserSelectAccomodation()

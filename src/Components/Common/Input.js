@@ -8,7 +8,7 @@ export default function Input({
   height = 40,
   onChange,
   customStyles,
-  placeHolder,
+  placeholder,
   textArea,
 }) {
   return (
@@ -21,14 +21,14 @@ export default function Input({
       {textArea ? (
         <textarea
           style={{ ...styles.input, width, height: 60, paddingTop: 10 }}
-          placeHolder={placeHolder}
+          placeholder={placeholder}
           type={type}
           onChange={onChange}
         />
       ) : (
         <input
           style={{ ...styles.input, width, height }}
-          placeHolder={placeHolder}
+          placeholder={placeholder}
           type={type}
           onChange={onChange}
         />

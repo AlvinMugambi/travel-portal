@@ -1,5 +1,6 @@
 import axios from 'axios';
-const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
+// const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
+const BASE_URL = 'http://127.0.0.1:8000';
 
 const createTrip = async (
   trip_name,
@@ -8,6 +9,7 @@ const createTrip = async (
   start_date,
   end_date,
   requirements,
+  selected_date,
   date_is_locked,
   jwtToken,
 ) => {
@@ -21,6 +23,7 @@ const createTrip = async (
         start_date,
         end_date,
         requirements,
+        selected_date,
         date_is_locked,
       },
       {
@@ -44,7 +47,7 @@ const createTrip = async (
 const updateTripDate = async (trip_id, selected_date, jwtToken) => {
   return axios
     .patch(
-      `${BASE_URL}/trips/create`,
+      `${BASE_URL}/trips/update`,
       {
         trip_id,
         selected_date,
@@ -74,7 +77,7 @@ const updateTripAccomodation = async (
 ) => {
   return axios
     .patch(
-      `${BASE_URL}/trips/create`,
+      `${BASE_URL}/trips/update`,
       {
         trip_id,
         selected_accomodation,
@@ -99,7 +102,7 @@ const updateTripAccomodation = async (
 
 const getUserTrips = async (jwtToken) => {
   return axios
-    .get(`${BASE_URL}/trips`, {
+    .get(`${BASE_URL}/trips/`, {
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
@@ -246,6 +249,57 @@ const getTopVotedDate = async (trip_id, jwtToken) => {
     });
 };
 
+const voteForActivity = async (trip_id, activity_id, jwtToken) => {
+  return axios
+    .post(
+      `${BASE_URL}/trips/vote_activity`,
+      { trip_id, activity_id },
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      },
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error('voteForActivity error =>', error?.response);
+      return {
+        success: false,
+        error: error,
+      };
+    });
+};
+
+const voteForAccomodation = async (
+  trip_id,
+  accommodation_id,
+  reason,
+  jwtToken,
+) => {
+  return axios
+    .post(
+      `${BASE_URL}/trips/vote_accommodation`,
+      { trip_id, accommodation_id, reason },
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      },
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error('voteForAccomodation error =>', error?.response);
+      return {
+        success: false,
+        error: error,
+      };
+    });
+};
+
 const getTripRegister = async (trip_id, jwtToken) => {
   return axios
     .post(
@@ -342,12 +396,18 @@ const inviteeUpdatePreferredDate = async (
   trip_id,
   selected_available_startdate,
   selected_available_enddate,
+  selected_date_reason,
   jwtToken,
 ) => {
   return axios
     .patch(
       `${BASE_URL}/trips/invitee_update_trip`,
-      { trip_id, selected_available_startdate, selected_available_enddate },
+      {
+        trip_id,
+        selected_available_startdate,
+        selected_available_enddate,
+        selected_date_reason,
+      },
       {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
@@ -397,6 +457,121 @@ const inviteeUpdatePreferredAccomodation = async (
     });
 };
 
+const getTripProposedDates = async (trip_id, jwtToken) => {
+  return axios
+    .post(
+      `${BASE_URL}/trips/proposed_dates`,
+      { trip_id },
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      },
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error('getTripProposedDates error =>', error?.response);
+      return {
+        success: false,
+        error: error,
+      };
+    });
+};
+
+const addTripActivity = async (trip_id, activity, jwtToken) => {
+  return axios
+    .post(
+      `${BASE_URL}/trips/add_activities`,
+      { trip_id, activity },
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      },
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error('addTripActivity error =>', error?.response);
+      return {
+        success: false,
+        error: error,
+      };
+    });
+};
+
+const getTripActivities = async (trip_id, jwtToken) => {
+  return axios
+    .post(
+      `${BASE_URL}/trips/get_activities`,
+      { trip_id },
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      },
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error('getTripActivities error =>', error?.response);
+      return {
+        success: false,
+        error: error,
+      };
+    });
+};
+
+const addTripAccommodation = async (trip_id, accommodation, link, jwtToken) => {
+  return axios
+    .post(
+      `${BASE_URL}/trips/add_accommodation`,
+      { trip_id, accommodation, link },
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      },
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error('addTripAccommodation error =>', error?.response);
+      return {
+        success: false,
+        error: error,
+      };
+    });
+};
+
+const getTripAccommodations = async (trip_id, jwtToken) => {
+  return axios
+    .post(
+      `${BASE_URL}/trips/get_accommodations`,
+      { trip_id },
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      },
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error('getTripAccommodations error =>', error?.response);
+      return {
+        success: false,
+        error: error,
+      };
+    });
+};
+
 export const tripService = {
   createTrip,
   getUserTrips,
@@ -414,4 +589,11 @@ export const tripService = {
   updateTripDate,
   updateTripAccomodation,
   getTopVotedDate,
+  getTripProposedDates,
+  addTripActivity,
+  getTripActivities,
+  addTripAccommodation,
+  getTripAccommodations,
+  voteForActivity,
+  voteForAccomodation,
 };

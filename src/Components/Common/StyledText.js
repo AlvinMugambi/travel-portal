@@ -20,6 +20,7 @@ export default function StyledText({
         letterSpacing,
         color: link ? 'blue' : color,
         cursor: link ? 'pointer' : 'default',
+        flexShrink: 1,
       }}
       onClick={onClick}
     >

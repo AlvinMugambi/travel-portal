@@ -10,6 +10,7 @@ import StyledText from '../../Components/Common/StyledText';
 import FormView from '../../Components/Common/FormView';
 import Input from '../../Components/Common/Input';
 import Button from '../../Components/Common/Button';
+import { useMediaQuery } from 'react-responsive';
 
 const validateEmail = (email) => {
   return String(email)
@@ -29,6 +30,7 @@ export default function Register() {
   const setUserData = useSetRecoilState(UserData);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
 
   const onSubmit = () => {
     if (!validateEmail(email)) {
@@ -61,7 +63,7 @@ export default function Register() {
         <div style={styles.flexCenter}>
           <img
             src={require('../../Assets/Images/travel-tech-logo.png')}
-            alt=''
+            alt=""
             style={styles.img}
           />
           <StyledText fontSize="20px" fontWeight={700}>
@@ -77,7 +79,7 @@ export default function Register() {
         >
           Welcome!
         </StyledText>
-        <FormView width={420}>
+        <FormView width={isTabletOrMobile ? '80%' : 'auto'}>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {error && (
               <StyledText fontSize="14px" color="red">
@@ -88,7 +90,7 @@ export default function Register() {
           <div style={styles.input}>
             <StyledText fontSize={16}>Email</StyledText>
             <Input
-              width={410}
+              width={isTabletOrMobile ? '100%' : 410}
               placeHolder={'Enter Email'}
               onChange={(e) => setEmailAddress(e.target.value)}
             />
@@ -96,7 +98,7 @@ export default function Register() {
           <div style={styles.input}>
             <StyledText fontSize={16}>Username</StyledText>
             <Input
-              width={410}
+              width={isTabletOrMobile ? '100%' : 410}
               placeHolder={'Enter username'}
               onChange={(e) => setUsername(e.target.value)}
             />
@@ -112,7 +114,7 @@ export default function Register() {
           <div style={styles.input}>
             <StyledText fontSize={16}>Password</StyledText>
             <Input
-              width={410}
+              width={isTabletOrMobile ? '100%' : 410}
               type={'password'}
               placeHolder={'Enter password'}
               onChange={(e) => setPassword(e.target.value)}
@@ -127,7 +129,7 @@ export default function Register() {
                   'Submit'
                 )
               }
-              width={420}
+              width={isTabletOrMobile ? '100%' : 420}
               disabled={!email || !username || !password}
               onClick={onSubmit}
             />

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Calendar from 'react-calendar';
-import Checkbox from 'rc-checkbox';
 import { format } from 'date-fns';
+import { useMediaQuery } from 'react-responsive';
 
 import { ReactComponent as NotificationIcon } from '../../../Assets/Icons/notification.svg';
 import Input from '../../../Components/Common/Input';
@@ -11,12 +11,12 @@ import FormView from '../../../Components/Common/FormView';
 import Button from '../../../Components/Common/Button';
 import Trip from './trip';
 import 'react-calendar/dist/Calendar.css';
-import 'rc-checkbox/assets/index.css';
 import '../../../App.css';
 import { capitalizeFLetter } from '../../../Utils/helpers';
 import { tripService } from '../../../Services/tripService';
+import Checkbox from 'rc-checkbox';
 
-export default function Trips() {
+export default function Trips({ setDrawerOpen }) {
   const [selectedTrip, setSelectedTrip] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [fixedDate, setFixedDate] = useState(false);
@@ -30,16 +30,26 @@ export default function Trips() {
   const [destination, setDestination] = useState('');
   const [description, setDescription] = useState('');
   const [requirements, setRequirements] = useState('');
+  const [activity1, setActivity1] = useState('');
+  const [activity2, setActivity2] = useState('');
+  const [activity3, setActivity3] = useState('');
+  const [activity4, setActivity4] = useState('');
+  const [activity5, setActivity5] = useState('');
+  const [accommodation1, setAccommodation1] = useState({ name: '', link: '' });
+  const [accommodation2, setAccommodation2] = useState({ name: '', link: '' });
+  const [accommodation3, setAccommodation3] = useState({ name: '', link: '' });
+  const [accommodation4, setAccommodation4] = useState({ name: '', link: '' });
+  const [accommodation5, setAccommodation5] = useState({ name: '', link: '' });
   const [error, setError] = useState('');
-  const [prefferedDate, setPrefferedDate] = useState(new Date());
-  // const userData = useRecoilValue(UserData);
-  // const jwtToken = useRecoilValue(JwtTokenState);
+  const [selectedTripDate, setSelectedTripDate] = useState(new Date());
   const jwtToken = localStorage.getItem('token');
   const userData = JSON.parse(localStorage.getItem('userData'));
+  const [mainAgenda, setMainAgenda] = useState([]);
 
   const [userTrips, setUserTrips] = useState([]);
   const [invitedTrips, setInvitedTrips] = useState([]);
   const [acceptedTrips, setAcceptedTrips] = useState([]);
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
 
   useEffect(() => {
     tripService.getUserTrips(jwtToken).then((res) => {
@@ -71,6 +81,7 @@ export default function Trips() {
       );
     }
   }, [userTripsSearchPhrase, userTrips]);
+
   const filteredInvitedTrips = useMemo(() => {
     if (!invitedTripsSearchPhrase) {
       return invitedTrips;
@@ -110,15 +121,13 @@ export default function Trips() {
   }, [acceptedTripsSearchPhrase, acceptedTrips]);
 
   const submit = () => {
+    if (!tripName || !destination || !selectedTripDate) {
+      return;
+    }
     let _startDate;
     let _endDate;
-    if (fixedDate) {
-      _startDate = format(prefferedDate, 'yyyy-MM-dd');
-      _endDate = format(prefferedDate, 'yyyy-MM-dd');
-    } else {
-      _startDate = format(prefferedDate[0], 'yyyy-MM-dd');
-      _endDate = format(prefferedDate[1], 'yyyy-MM-dd');
-    }
+    _startDate = format(new Date(selectedTripDate), 'PPP');
+    _endDate = format(new Date(selectedTripDate), 'PPP');
 
     tripService
       .createTrip(
@@ -128,6 +137,7 @@ export default function Trips() {
         _startDate,
         _endDate,
         requirements,
+        selectedTripDate,
         fixedDate,
         jwtToken,
       )
@@ -135,6 +145,38 @@ export default function Trips() {
         if (res.status === 201) {
           setIsSuccessful(!isSuccessful);
           setModalVisible(false);
+          const activities = [
+            activity1,
+            activity2,
+            activity3,
+            activity4,
+            activity5,
+          ];
+          activities.forEach((activity) => {
+            activity &&
+              tripService
+                .addTripActivity(res.data.id, activity, jwtToken)
+                .then((res) => {
+                  console.log('res====>', res);
+                });
+          });
+
+          const accommodations = [
+            accommodation1,
+            accommodation2,
+            accommodation3,
+            accommodation4,
+            accommodation5,
+          ];
+          accommodations.forEach((acc) => {
+            acc.name &&
+              acc.link &&
+              tripService
+                .addTripAccommodation(res.data.id, acc.name, acc.link, jwtToken)
+                .then((res) => {
+                  console.log('res====>', res);
+                });
+          });
         } else {
           setError('Failed to create trip. Kindly try again');
         }
@@ -143,10 +185,19 @@ export default function Trips() {
 
   return (
     <div>
-      <div style={styles.header}>
-        <div style={styles.flexRowCenter}>
+      <div className="header">
+        <div className="flexRowCenter">
+          {isTabletOrMobile && (
+            <div style={{ position: 'relative', left: 10, marginRight: 30 }}>
+              <img
+                src={require('../../../Assets/Icons/menu.png')}
+                width={20}
+                onClick={() => setDrawerOpen((prev) => !prev)}
+              />
+            </div>
+          )}
           <StyledText
-            fontSize="30px"
+            fontSize={isTabletOrMobile ? '20px' : '30px'}
             fontWeight={700}
             onClick={() => setSelectedTrip()}
             customStyle={{ cursor: selectedTrip ? 'pointer' : 'default' }}
@@ -154,28 +205,31 @@ export default function Trips() {
             Dashboard
           </StyledText>
           {selectedTrip && (
-            <div style={styles.flexRowCenter}>
+            <div className="flexRowCenter">
               <StyledText
-                fontSize="20px"
+                fontSize={isTabletOrMobile ? '20px' : '20px'}
                 fontWeight={700}
                 customStyle={{ paddingLeft: 10, paddingRight: 10 }}
               >
                 {'>'}
               </StyledText>
-              <StyledText fontSize="30px" fontWeight={700}>
+              <StyledText
+                fontSize={isTabletOrMobile ? '20px' : '30px'}
+                fontWeight={700}
+              >
                 {selectedTrip?.name}
               </StyledText>
             </div>
           )}
         </div>
-        <div style={styles.headerRight}>
-          <NotificationIcon style={styles.notification} />
-          <div style={styles.avatar}>
+        <div className="headerRight">
+          {/* <NotificationIcon className='notification' /> */}
+          <div className="dash-avatar">
             <StyledText fontSize="20px" fontWeight={700}>
               {userData?.username[0]?.toUpperCase()}
             </StyledText>
           </div>
-          <p>{capitalizeFLetter(userData?.username)}</p>
+          {!isTabletOrMobile && <p>{capitalizeFLetter(userData?.username)}</p>}
         </div>
       </div>
       {selectedTrip && (
@@ -194,17 +248,17 @@ export default function Trips() {
             <StyledText fontSize="25px" fontWeight={700}>
               My trips
             </StyledText>
-            <div style={styles.flexRowCenter}>
+            <div className="filterLayout">
               <Input
-                placeHolder={'Search your trips'}
-                width={500}
+                placeholder={'Search your trips'}
+                width={isTabletOrMobile ? 200 : 500}
                 onChange={(e) => setUserTripsSearchPhrase(e.target.value)}
               />
-              <div style={styles.filter}>
+              <div className="filter">
                 <img
                   src={require('../../../Assets/Images/filter.png')}
-                  alt=''
-                  style={styles.filterImg}
+                  alt=""
+                  className="filterImg"
                 />
                 <StyledText>Filter</StyledText>
               </div>
@@ -212,36 +266,32 @@ export default function Trips() {
             <div style={{ marginTop: 50, display: 'flex', flexWrap: 'wrap' }}>
               {filteredUserTrips?.map((trip, index) => (
                 <div
-                  style={styles.tripBox}
+                  className="tripBox"
                   key={index}
                   onClick={() => setSelectedTrip(trip)}
                 >
-                  <div style={styles.tripBoxImg}>
+                  <div className="smallTripBoxImg">
                     <img
                       src={
                         trip?.image ||
                         require('../../../Assets/Images/Diani_Beach.jpg')
                       }
-                      alt=''
-                      style={{
-                        width: 275,
-                        height: '100%',
-                        borderRadius: '10px 10px 0 0',
-                      }}
+                      alt=""
+                      className="tripPreview"
                     />
-                    <div style={{ position: 'relative', top: -50, left: 10 }}>
-                      <div style={styles.avatar}>
+                    <div className="tripAbbr">
+                      <div className="avatar">
                         <StyledText fontSize="20px" fontWeight={700}>
                           {trip?.name?.[0]}
                         </StyledText>
                       </div>
                     </div>
                   </div>
-                  <div style={{ padding: 10 }}>
+                  <div style={{ paddingLeft: 10, paddingRight: 10 }}>
                     <StyledText fontWeight={700} fontSize="18px">
                       {trip?.name}
                     </StyledText>
-                    <div style={styles.flexRowCenter}>
+                    <div className="flexRowCenter">
                       <img
                         src={require('../../../Assets/Images/location.png')}
                         alt="loc"
@@ -253,13 +303,13 @@ export default function Trips() {
                 </div>
               ))}
               <div
-                style={styles.addBox}
+                className="addBox"
                 onClick={() => {
-                  setPrefferedDate(new Date());
+                  setSelectedTripDate(new Date());
                   setModalVisible(true);
                 }}
               >
-                <div style={styles.add}>
+                <div className="add">
                   <StyledText fontSize="20px" fontWeight={700}>
                     +
                   </StyledText>
@@ -274,17 +324,17 @@ export default function Trips() {
             <StyledText fontSize="25px" fontWeight={700}>
               Invited trips
             </StyledText>
-            <div style={styles.flexRowCenter}>
+            <div className="filterLayout">
               <Input
-                placeHolder={'Search invited trips'}
-                width={500}
+                placeholder={'Search invited trips'}
+                width={isTabletOrMobile ? 200 : 500}
                 onChange={(e) => setinvitedTripsSearchPhrase(e.target.value)}
               />
-              <div style={styles.filter}>
+              <div className="filter">
                 <img
                   src={require('../../../Assets/Images/filter.png')}
-                  alt=''
-                  style={styles.filterImg}
+                  alt=""
+                  className="filterImg"
                 />
                 <StyledText>Filter</StyledText>
               </div>
@@ -292,7 +342,7 @@ export default function Trips() {
             <div style={{ marginTop: 50, display: 'flex', flexWrap: 'wrap' }}>
               {filteredInvitedTrips?.map((trip, index) => (
                 <div
-                  style={styles.tripBox}
+                  className="tripBox"
                   key={index}
                   onClick={() =>
                     setSelectedTrip({
@@ -302,32 +352,28 @@ export default function Trips() {
                     })
                   }
                 >
-                  <div style={styles.tripBoxImg}>
+                  <div className="smallTripBoxImg">
                     <img
                       src={
                         trip?.trip?.image ||
                         require('../../../Assets/Images/Diani_Beach.jpg')
                       }
-                      alt=''
-                      style={{
-                        width: 275,
-                        height: '100%',
-                        borderRadius: '10px 10px 0 0',
-                      }}
+                      alt=""
+                      className="tripPreview"
                     />
-                    <div style={{ position: 'relative', top: -50, left: 10 }}>
-                      <div style={styles.avatar}>
+                    <div className="tripAbbr">
+                      <div className="avatar">
                         <StyledText fontSize="20px" fontWeight={700}>
                           {trip?.trip?.name?.[0]}
                         </StyledText>
                       </div>
                     </div>
                   </div>
-                  <div style={{ padding: 10 }}>
+                  <div style={{ paddingLeft: 10, paddingRight: 10 }}>
                     <StyledText fontWeight={700} fontSize="18px">
                       {trip?.trip?.name}
                     </StyledText>
-                    <div style={styles.flexRowCenter}>
+                    <div className="flexRowCenter">
                       <img
                         src={require('../../../Assets/Images/location.png')}
                         alt="loc"
@@ -344,17 +390,17 @@ export default function Trips() {
             <StyledText fontSize="25px" fontWeight={700}>
               Confirmed trips
             </StyledText>
-            <div style={styles.flexRowCenter}>
+            <div className="filterLayout">
               <Input
-                placeHolder={'Search confirmed trips'}
-                width={500}
+                placeholder={'Search confirmed trips'}
+                width={isTabletOrMobile ? 200 : 500}
                 onChange={(e) => setAcceptedTripsSearchPhrase(e.target.value)}
               />
-              <div style={styles.filter}>
+              <div className="filter">
                 <img
                   src={require('../../../Assets/Images/filter.png')}
-                  alt=''
-                  style={styles.filterImg}
+                  alt=""
+                  className="filterImg"
                 />
                 <StyledText>Filter</StyledText>
               </div>
@@ -362,7 +408,7 @@ export default function Trips() {
             <div style={{ marginTop: 50, display: 'flex', flexWrap: 'wrap' }}>
               {filteredAcceptedTrips?.map((trip, index) => (
                 <div
-                  style={styles.tripBox}
+                  className="tripBox"
                   key={index}
                   onClick={() =>
                     setSelectedTrip({
@@ -372,32 +418,28 @@ export default function Trips() {
                     })
                   }
                 >
-                  <div style={styles.tripBoxImg}>
+                  <div className="smallTripBoxImg">
                     <img
                       src={
                         trip?.image ||
                         require('../../../Assets/Images/Diani_Beach.jpg')
                       }
-                      alt=''
-                      style={{
-                        width: 275,
-                        height: '100%',
-                        borderRadius: '10px 10px 0 0',
-                      }}
+                      alt=""
+                      className="tripPreview"
                     />
-                    <div style={{ position: 'relative', top: -50, left: 10 }}>
-                      <div style={styles.avatar}>
+                    <div className="tripAbbr">
+                      <div className="avatar">
                         <StyledText fontSize="20px" fontWeight={700}>
                           {trip?.trip?.name?.[0]}
                         </StyledText>
                       </div>
                     </div>
                   </div>
-                  <div style={{ padding: 10 }}>
+                  <div style={{ paddingLeft: 10, paddingRight: 10 }}>
                     <StyledText fontWeight={700} fontSize="18px">
                       {trip?.trip?.name}
                     </StyledText>
-                    <div style={styles.flexRowCenter}>
+                    <div className="flexRowCenter">
                       <img
                         src={require('../../../Assets/Images/location.png')}
                         alt="loc"
@@ -417,20 +459,29 @@ export default function Trips() {
       <Modal
         isVisible={modalVisible}
         onClose={() => setModalVisible(false)}
-        width={500}
+        width={isTabletOrMobile ? '90%' : 500}
+        height={isSuccessful ? 'auto' : '95vh'}
+        maxHeight={'95vh'}
       >
         <div style={{ padding: '10px 20px' }}>
           {!isSuccessful ? (
             <>
-              <StyledText
-                fontSize="25px"
-                fontWeight={700}
-                customStyle={{ paddingBottom: 10 }}
-              >
-                Create a trip
-              </StyledText>
-              <div style={styles.form}>
-                <FormView width={420}>
+              <div className="tripModalHeader">
+                <StyledText fontSize="25px" fontWeight={700}>
+                  Create a trip
+                </StyledText>
+                <div>
+                  <StyledText
+                    color="black"
+                    fontSize="30px"
+                    onClick={() => setModalVisible((prev) => !prev)}
+                  >
+                    &times;
+                  </StyledText>
+                </div>
+              </div>
+              <div className="form">
+                <FormView width={'100%'}>
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     {error && (
                       <StyledText fontSize="14px" color="red">
@@ -441,36 +492,36 @@ export default function Trips() {
                   <div>
                     <StyledText fontSize={16}>Trip name</StyledText>
                     <Input
-                      width={410}
-                      placeHolder={'e.g. Trip with the boys'}
+                      width={isTabletOrMobile ? '100%' : 410}
+                      placeholder={'e.g. Trip with the boys'}
                       onChange={(e) => setTripName(e.target.value)}
                     />
                   </div>
                   <div>
                     <StyledText fontSize={16}>Destination</StyledText>
                     <Input
-                      width={410}
-                      placeHolder={'e.g. Diani'}
+                      width={isTabletOrMobile ? '100%' : 410}
+                      placeholder={'e.g. Diani'}
                       onChange={(e) => setDestination(e.target.value)}
                     />
                   </div>
                   <div>
                     <StyledText fontSize={16}>Description</StyledText>
                     <Input
-                      width={410}
+                      width={isTabletOrMobile ? '100%' : 410}
                       textArea={true}
-                      placeHolder={'Describe your trip here'}
+                      placeholder={'Describe your trip here'}
                       onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
-                  <div style={styles.flexRowCenter}>
+                  <div className="flexRowCenter">
                     <p>
                       <label>
                         <Checkbox
                           name={'fixedDate'}
                           checked={fixedDate}
                           onChange={() => {
-                            setPrefferedDate(new Date());
+                            setSelectedTripDate(new Date());
                             setFixedDate(!fixedDate);
                           }}
                         />
@@ -482,29 +533,26 @@ export default function Trips() {
                   <div>
                     <StyledText fontSize={16}>
                       Select date
-                      {!fixedDate && (
+                      {/* {!fixedDate && (
                         <span>
                           {' '}
-                          range{' '}
-                          <span style={{ fontSize: '15px' }}>
-                            {' '}
-                            (date range within when the trip should happen)
-                          </span>
+                          range
                         </span>
-                      )}
+                      )} */}
                     </StyledText>
                     <Calendar
-                      onChange={setPrefferedDate}
-                      value={prefferedDate}
-                      selectRange={!fixedDate}
+                      onChange={setSelectedTripDate}
+                      value={selectedTripDate}
                     />
                   </div>
                 </FormView>
-                <div style={styles.btn}>
+                <div className="btn">
                   <Button
                     label={'Create trip'}
-                    width={450}
+                    width={isTabletOrMobile ? 320 : 450}
                     onClick={() => {
+                      if (!tripName || !destination || !selectedTripDate)
+                        return;
                       setIsSuccessful(true);
                     }}
                   />
@@ -513,30 +561,253 @@ export default function Trips() {
             </>
           ) : (
             <>
-              <StyledText
-                fontSize="25px"
-                fontWeight={700}
-                customStyle={{ paddingBottom: 10 }}
-              >
-                One last step!
-              </StyledText>
-              <div style={styles.form}>
-                <FormView width={420}>
+              <div className="tripModalHeader">
+                <StyledText fontSize="25px" fontWeight={700}>
+                  One last step!
+                </StyledText>
+                <div>
+                  <StyledText
+                    color="black"
+                    fontSize="30px"
+                    onClick={() => {
+                      setIsSuccessful(false);
+                      setModalVisible((prev) => !prev);
+                    }}
+                  >
+                    &times;
+                  </StyledText>
+                </div>
+              </div>
+              <div className="form">
+                <FormView width={isTabletOrMobile ? '100%' : 420}>
                   <div>
+                    <div>
+                      <StyledText>
+                        What is your trip mainly determined by:
+                      </StyledText>
+                      <div className="flexRowCenter">
+                        <p>
+                          <label>
+                            <Checkbox
+                              name={'mainAgenda'}
+                              checked={mainAgenda.includes('activities')}
+                              onChange={() => {
+                                setMainAgenda((prev) => {
+                                  if (prev.includes('activities')) {
+                                    return prev.filter(
+                                      (item) => item !== 'activities',
+                                    );
+                                  } else return [...prev, 'activities'];
+                                });
+                              }}
+                            />
+                            &nbsp; The Activities
+                          </label>
+                          &nbsp;&nbsp;
+                        </p>
+                      </div>
+                      {mainAgenda.includes('activities') && (
+                        <>
+                          <StyledText fontSize="14px">
+                            List possible activities for the group to vote on
+                            the ones they prefer (You can add others later)
+                          </StyledText>
+                          <Input
+                            customStyles={{ marginBottom: 10 }}
+                            placeholder={'Activity 1'}
+                            width={'100%'}
+                            onChange={(e) => setActivity1(e.target.value)}
+                          />
+                          <Input
+                            customStyles={{ marginBottom: 10 }}
+                            placeholder={'Activity 2'}
+                            width={'100%'}
+                            onChange={(e) => setActivity2(e.target.value)}
+                          />
+                          <Input
+                            customStyles={{ marginBottom: 10 }}
+                            placeholder={'Activity 3'}
+                            width={'100%'}
+                            onChange={(e) => setActivity3(e.target.value)}
+                          />
+                          <Input
+                            customStyles={{ marginBottom: 10 }}
+                            placeholder={'Activity 4'}
+                            width={'100%'}
+                            onChange={(e) => setActivity4(e.target.value)}
+                          />
+                          <Input
+                            customStyles={{ marginBottom: 10 }}
+                            placeholder={'Activity 5'}
+                            width={'100%'}
+                            onChange={(e) => setActivity5(e.target.value)}
+                          />
+                        </>
+                      )}
+                      <div className="flexRowCenter">
+                        <p>
+                          <label>
+                            <Checkbox
+                              name={'mainAgenda'}
+                              checked={mainAgenda.includes('accommodation')}
+                              onChange={() => {
+                                setMainAgenda((prev) => {
+                                  if (prev.includes('accommodation')) {
+                                    return prev.filter(
+                                      (item) => item !== 'accommodation',
+                                    );
+                                  } else return [...prev, 'accommodation'];
+                                });
+                              }}
+                            />
+                            &nbsp; The Accommodation
+                          </label>
+                          &nbsp;&nbsp;
+                        </p>
+                      </div>
+                      {mainAgenda.includes('accommodation') && (
+                        <>
+                          <StyledText fontSize="14px">
+                            Provide links to the accomodations you would like
+                            people to choose from (You can add others later)
+                          </StyledText>
+                          <div style={{ marginBottom: 20 }}>
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 1 name'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation1((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                            />
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 1 link'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation1((prev) => ({
+                                  ...prev,
+                                  link: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div style={{ marginBottom: 20 }}>
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 2 name'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation2((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                            />
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 2 link'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation2((prev) => ({
+                                  ...prev,
+                                  link: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div style={{ marginBottom: 20 }}>
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 3 name'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation3((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                            />
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 3 link'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation3((prev) => ({
+                                  ...prev,
+                                  link: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div style={{ marginBottom: 20 }}>
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 4 name'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation4((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                            />
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 4 link'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation4((prev) => ({
+                                  ...prev,
+                                  link: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div style={{ marginBottom: 20 }}>
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 5 name'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation5((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                            />
+                            <Input
+                              customStyles={{ marginBottom: 10 }}
+                              placeholder={'Accomodation 5 link'}
+                              width={'100%'}
+                              onChange={(e) =>
+                                setAccommodation5((prev) => ({
+                                  ...prev,
+                                  link: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
                     <StyledText fontSize={16}>
                       Add notes or requirements for the trip
                     </StyledText>
                     <Input
-                      width={410}
-                      placeHolder={'e.g. Carry sports shoes'}
+                      width={'100%'}
+                      placeholder={'e.g. Carry sports shoes'}
                       textArea
                       onChange={(e) => setRequirements(e.target.value)}
                     />
                   </div>
-                  <div style={styles.btn}>
+                  <div className="btn">
                     <Button
                       label={'Done'}
-                      width={450}
+                      width={isTabletOrMobile ? 320 : 450}
                       onClick={() => {
                         submit();
                       }}
@@ -551,94 +822,3 @@ export default function Trips() {
     </div>
   );
 }
-
-const styles = {
-  flexRowCenter: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  filter: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'white',
-    width: 100,
-    borderRadius: 10,
-    height: 40,
-    marginTop: 10,
-    marginLeft: 10,
-  },
-  filterImg: { width: 20, height: 20, marginRight: 10 },
-  header: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 50,
-  },
-  headerRight: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  notification: {
-    marginRight: 30,
-    width: 30,
-  },
-  avatar: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 40,
-    height: 40,
-    borderRadius: 50,
-    filter: 'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))',
-    backgroundColor: 'white',
-    marginRight: 10,
-  },
-  add: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 40,
-    height: 40,
-    borderRadius: 50,
-    filter: 'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))',
-    backgroundColor: 'white',
-    marginRight: 10,
-  },
-  tripBox: {
-    borderRadius: 10,
-    width: 275,
-    height: 180,
-    display: 'flex',
-    flexDirection: 'column',
-    backgroundColor: 'white',
-    cursor: 'pointer',
-    marginRight: 30,
-    marginBottom: 30,
-  },
-  tripBoxImg: {
-    height: '50%',
-    // backgroundColor: 'rgba(25, 184, 123, 0.60)',
-    borderRadius: '10px 10px 0 0',
-    // paddingLeft: 20,
-    // paddingTop: 20,
-  },
-  pad20: { padding: 20 },
-  btn: {
-    marginTop: 30,
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  addBox: {
-    borderRadius: 10,
-    width: 275,
-    height: 180,
-    display: 'flex',
-    backgroundColor: 'white',
-    cursor: 'pointer',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-};
