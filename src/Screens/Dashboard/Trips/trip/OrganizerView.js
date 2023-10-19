@@ -34,6 +34,34 @@ export default function OrganizerView({ selectedTrip }) {
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
   const [tripUpdated, setTripUpdated] = useState(false);
   const [voters, setVoters] = useState([]);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const handleShare = () => {
+    setCopiedLink(false);
+    const text =
+      'Hey friends, click here to be invited to a trip I am currently planning.';
+    if (navigator.share) {
+      navigator
+        .share({
+          text,
+          url: 'https://traval-tech-portal.netlify.app/register',
+          title: 'Explore Africa Portal',
+        })
+        .then(() => console.log('Shared successfully'))
+        .catch((error) => console.error('Error sharing:', error));
+    } else {
+      console.log('Web Share API not supported on this browser');
+      navigator.clipboard
+        .writeText(text + ' URL: https://traval-tech-portal.netlify.app/register')
+        .then(() => {
+          setCopiedLink(true);
+          setTimeout(() => {
+            setCopiedLink(false);
+          }, 2000);
+        })
+        .catch((error) => console.error('Error copying:', error));
+    }
+  };
 
   useEffect(() => {
     tripService.getTripAttendees(selectedTrip?.id, jwtToken).then((res) => {
@@ -234,6 +262,7 @@ export default function OrganizerView({ selectedTrip }) {
             <StyledText fontWeight={600}>
               Search a  user and click on their name to send an invite
             </StyledText>
+
             {inviteSent && <StyledText color="green">Invite sent!</StyledText>}
             <Input
                 placeholder={'Search user using their first name or surname'}
@@ -241,6 +270,10 @@ export default function OrganizerView({ selectedTrip }) {
                 customStyles={{marginBottom: 20}}
                 onChange={(e) => setUserSearchPhrase(e.target.value)}
               />
+              <div className='flexRowCenter' style={{justifyContent: 'flex-end'}}>
+                <StyledText link onClick={handleShare} customStyle={{marginRight: copiedLink ? 10 : 0}}>Send an invite to the platform</StyledText>
+                {copiedLink && <StyledText color='green'>Link copied!</StyledText>}
+              </div>
             <div style={{ ...styles.flexRowCenter, flexWrap: 'wrap' }}>
               {filteredUninvitedUsers.map((user) => (
                 <div
