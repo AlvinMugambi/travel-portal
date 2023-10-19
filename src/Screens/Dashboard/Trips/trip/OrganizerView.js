@@ -10,6 +10,7 @@ import Input from '../../../../Components/Common/Input';
 import { useMediaQuery } from 'react-responsive';
 import Modal from '../../../../Components/Common/Modal';
 import FormView from '../../../../Components/Common/FormView';
+import { formatDate } from '../../../../Utils/helpers';
 
 export default function OrganizerView({ selectedTrip }) {
   const jwtToken = localStorage.getItem('token');
@@ -201,42 +202,6 @@ export default function OrganizerView({ selectedTrip }) {
     [selectedTrip, selectedAccommodation, accommodations],
   );
 
-  const formattedSelectedDate = useMemo(() => {
-    let date
-    try {
-      date = format(
-        new Date(selectedDate || new Date()),
-        'PPP',
-      );
-    } catch (error) {
-      console.log('formattedSelectedDate error==>', error);
-      date = selectedDate
-    }
-    return date
-  }, [selectedDate])
-
-  const formattedProposedDate = useCallback((proposedDate) => {
-    let date
-    try {
-      date = format(new Date(proposedDate), 'PPP')
-    } catch (error) {
-      console.log('formattedProposedDate error==>', error);
-      date = proposedDate
-    }
-    return date
-  }, [])
-
-  const formattedTripDate = useMemo(() => {
-    let date
-    try {
-      date = format(new Date(selectedTrip?.selected_date?.replace(/[(),']/g, '')), 'PPP')
-    } catch (error) {
-      console.log('formattedTripDate error==>', error);
-      date = selectedTrip?.selected_date
-    }
-    return date
-  }, [selectedTrip.selected_date])
-
   return (
     <div>
       <div>
@@ -346,7 +311,7 @@ export default function OrganizerView({ selectedTrip }) {
                     style={{ width: 15, height: 15, marginRight: 5 }}
                   />
                   <StyledText fontSize="15px">
-                    {selectedDate ? formattedSelectedDate : formattedTripDate}
+                    {selectedDate ? formatDate(selectedDate) : formatDate(selectedTrip?.selected_date?.replace(/[(),']/g, ''))}
                   </StyledText>
                 </div>
               </div>
@@ -402,7 +367,7 @@ export default function OrganizerView({ selectedTrip }) {
                       style={{ width: 15, height: 15, marginRight: 5 }}
                     />
                     <StyledText fontSize="14px" style={{ marginBottom: 0 }}>
-                      {formattedProposedDate(proposedDate?.selected_available_startdate)}
+                      {formatDate(proposedDate?.selected_available_startdate)}
                     </StyledText>
                   </div>
                   {proposedDate.selected_date_reason && (
