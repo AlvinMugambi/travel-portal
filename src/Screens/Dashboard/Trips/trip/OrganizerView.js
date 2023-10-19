@@ -226,6 +226,17 @@ export default function OrganizerView({ selectedTrip }) {
     return date
   }, [])
 
+  const formattedTripDate = useMemo(() => {
+    let date
+    try {
+      date = format(new Date(selectedTrip?.selected_date?.replace(/[(),']/g, '')), 'PPP')
+    } catch (error) {
+      console.log('formattedTripDate error==>', error);
+      date = selectedTrip?.selected_date
+    }
+    return date
+  }, [selectedTrip.selected_date])
+
   return (
     <div>
       <div>
@@ -335,7 +346,7 @@ export default function OrganizerView({ selectedTrip }) {
                     style={{ width: 15, height: 15, marginRight: 5 }}
                   />
                   <StyledText fontSize="15px">
-                    {selectedDate ? formattedSelectedDate : selectedTrip?.selected_date}
+                    {selectedDate ? formattedSelectedDate : formattedTripDate}
                   </StyledText>
                 </div>
               </div>
