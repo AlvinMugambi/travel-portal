@@ -73,10 +73,10 @@ export default function Login() {
             )}
           </div>
           <div style={styles.input}>
-            <StyledText fontSize={16}>Username</StyledText>
+            <StyledText fontSize={16}>Email</StyledText>
             <Input
               width={isTabletOrMobile ? '100%' : 410}
-              placeholder={'Enter username'}
+              placeholder={'Enter email'}
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
@@ -104,6 +104,7 @@ export default function Login() {
             />
           </div>
         </FormView>
+        <StyledText>Don't have an account? <span onClick={() => navigate('/Register')} style={{color: 'blue'}}>Register here</span></StyledText>
       </div>
     </div>
   );

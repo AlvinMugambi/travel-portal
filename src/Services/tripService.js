@@ -1,6 +1,6 @@
 import axios from 'axios';
-// const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
-const BASE_URL = 'http://127.0.0.1:8000';
+const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
+// const BASE_URL = 'http://127.0.0.1:8000';
 
 const createTrip = async (
   trip_name,
@@ -8,6 +8,7 @@ const createTrip = async (
   description,
   start_date,
   end_date,
+  duration,
   requirements,
   selected_date,
   date_is_locked,
@@ -22,6 +23,7 @@ const createTrip = async (
         description,
         start_date,
         end_date,
+        duration,
         requirements,
         selected_date,
         date_is_locked,

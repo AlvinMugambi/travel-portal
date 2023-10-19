@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import StyledText from '../../../../Components/Common/StyledText';
 import Button from '../../../../Components/Common/Button';
@@ -25,6 +25,7 @@ export default function OrganizerView({ selectedTrip }) {
   const [accommodationName, setAccommodationName] = useState('');
   const [accommodationLink, setAccommodationLink] = useState('');
   const [activity, setActivity] = useState('');
+  const [userSearchPhrase, setUserSearchPhrase] = useState('');
   const [selectedAccommodation, setSelectedAccommodation] = useState();
   const [modalAccommodationData, setModalAccommodationData] = useState();
   const [modalType, setModalType] = useState('accomodation');
@@ -88,13 +89,42 @@ export default function OrganizerView({ selectedTrip }) {
       users.filter(function (objFromA) {
         return !attendees.find(function (objFromB) {
           return (
-            objFromA.username === objFromB.attendee.username ||
-            objFromA.username === userData.username
+            objFromA.email === objFromB.attendee.email ||
+            objFromA.email === userData.email
           );
         });
       }),
-    [users, attendees, userData.username],
+    [users, attendees, userData.email],
   );
+
+  const filteredUninvitedUsers = useMemo(() => {
+    if (!userSearchPhrase) {
+      return [];
+    } else {
+      return uninvitedUsers.filter((item) =>
+        item.firstname
+          .toUpperCase()
+          .replaceAll(' ', '')
+          .includes(
+            userSearchPhrase
+              .toUpperCase()
+              .trim()
+              .replaceAll(' ', '')
+              .replace(/\s/g, ''),
+          ) ||
+          item.surname
+          .toUpperCase()
+          .replaceAll(' ', '')
+          .includes(
+            userSearchPhrase
+              .toUpperCase()
+              .trim()
+              .replaceAll(' ', '')
+              .replace(/\s/g, ''),
+          )
+      );
+    }
+  }, [userSearchPhrase, uninvitedUsers]);
 
   const invite = (username) => {
     tripService
@@ -111,20 +141,16 @@ export default function OrganizerView({ selectedTrip }) {
 
   const updateTripDate = (selected_available_startdate) => {
     console.log('selectedDate==>', selectedDate);
-    const date = format(
-      new Date(selected_available_startdate || new Date()),
-      'PPP',
-    );
+    const date = new Date(selected_available_startdate) 
+
     tripService.updateTripDate(selectedTrip.id, date, jwtToken).then((res) => {
       if (res.status === 200) {
         console.log('res==>', res);
         console.log(
           'selected_available_startdate==>',
-          selected_available_startdate,
+          date,
         );
-        if (selected_available_startdate) {
-          setSelectedDate(selected_available_startdate);
-        }
+        setSelectedDate(date);
       }
     });
   };
@@ -175,6 +201,31 @@ export default function OrganizerView({ selectedTrip }) {
     [selectedTrip, selectedAccommodation, accommodations],
   );
 
+  const formattedSelectedDate = useMemo(() => {
+    let date
+    try {
+      date = format(
+        new Date(selectedDate || new Date()),
+        'PPP',
+      );
+    } catch (error) {
+      console.log('formattedSelectedDate error==>', error);
+      date = selectedDate
+    }
+    return date
+  }, [selectedDate])
+
+  const formattedProposedDate = useCallback((proposedDate) => {
+    let date
+    try {
+      date = format(new Date(proposedDate), 'PPP')
+    } catch (error) {
+      console.log('formattedProposedDate error==>', error);
+      date = proposedDate
+    }
+    return date
+  }, [])
+
   return (
     <div>
       <div>
@@ -186,7 +237,7 @@ export default function OrganizerView({ selectedTrip }) {
             attendees.map((attendee) => (
               <div style={styles.attendee}>
                 <div style={{ ...styles.avatar, width: 50, height: 50 }}>
-                  {attendee?.attendee?.username[0]?.toUpperCase()}
+                  {attendee?.attendee?.firstname[0]?.toUpperCase()}
                   {attendee.invite_accepted && (
                     <img
                       src={require('../../../../Assets/Icons/checked.png')}
@@ -195,7 +246,7 @@ export default function OrganizerView({ selectedTrip }) {
                     />
                   )}
                 </div>
-                <StyledText>{attendee?.attendee?.username}</StyledText>
+                <StyledText>{attendee?.attendee?.firstname}</StyledText>
               </div>
             ))
           ) : (
@@ -205,26 +256,32 @@ export default function OrganizerView({ selectedTrip }) {
         {!!uninvitedUsers.length && (
           <div>
             <StyledText fontWeight={600}>
-              Click a user to send an invite
+              Search a  user and click on their name to send an invite
             </StyledText>
             {inviteSent && <StyledText color="green">Invite sent!</StyledText>}
+            <Input
+                placeholder={'Search user using their first name or surname'}
+                width={'100%'}
+                customStyles={{marginBottom: 20}}
+                onChange={(e) => setUserSearchPhrase(e.target.value)}
+              />
             <div style={{ ...styles.flexRowCenter, flexWrap: 'wrap' }}>
-              {uninvitedUsers.map((user) => (
+              {filteredUninvitedUsers.map((user) => (
                 <div
                   style={styles.attendee}
-                  onClick={() => invite(user.username)}
+                  onClick={() => invite(user.email)}
                 >
                   <div style={{ ...styles.avatar, width: 50, height: 50 }}>
-                    {user?.username[0]?.toUpperCase()}
+                    {user?.firstname[0]?.toUpperCase()}
                   </div>
-                  <StyledText>{user?.username}</StyledText>
+                  <StyledText>{user?.firstname} {user.surname}</StyledText>
                 </div>
               ))}
             </div>
           </div>
         )}
       </div>
-      <StyledText fontSize="25px" fontWeight={700}>
+      <StyledText fontSize="20px" fontWeight={700}>
         Trip Date
       </StyledText>
       <div style={{ margin: '20px 0' }}>
@@ -242,7 +299,7 @@ export default function OrganizerView({ selectedTrip }) {
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Button
                 onClick={() => {
-                  updateTripDate();
+                  updateTripDate(selectedDate);
                   setIsEdittingDate(false);
                 }}
                 customStyles={{ marginTop: 10 }}
@@ -262,7 +319,7 @@ export default function OrganizerView({ selectedTrip }) {
                   style={{ width: 15, height: 15, marginRight: 5 }}
                 />
                 <StyledText customStyle={{ marginLeft: 5 }} fontWeight={500}>
-                  {userData?.username} (Organizer)
+                  {userData?.firstname} (Organizer)
                 </StyledText>
               </div>
               <div
@@ -277,17 +334,8 @@ export default function OrganizerView({ selectedTrip }) {
                     alt="loc"
                     style={{ width: 15, height: 15, marginRight: 5 }}
                   />
-                  {console.log(
-                    'selectedTrip?.selected_date===>',
-                    selectedTrip?.selected_date,
-                  )}
                   <StyledText fontSize="15px">
-                    {selectedDate
-                      ? format(new Date(selectedDate), 'PPP')
-                      : format(
-                          new Date(selectedTrip?.selected_date || new Date()),
-                          'PPP',
-                        )}
+                    {selectedDate ? formattedSelectedDate : selectedTrip?.selected_date}
                   </StyledText>
                 </div>
               </div>
@@ -332,7 +380,7 @@ export default function OrganizerView({ selectedTrip }) {
                     fontWeight={500}
                     fontSize="14px"
                   >
-                    {proposedDate?.attendee?.username}
+                    {proposedDate?.attendee?.firstname}
                   </StyledText>
                 </div>
                 <div>
@@ -343,10 +391,7 @@ export default function OrganizerView({ selectedTrip }) {
                       style={{ width: 15, height: 15, marginRight: 5 }}
                     />
                     <StyledText fontSize="14px" style={{ marginBottom: 0 }}>
-                      {format(
-                        new Date(proposedDate?.selected_available_startdate),
-                        'PPP',
-                      )}
+                      {formattedProposedDate(proposedDate?.selected_available_startdate)}
                     </StyledText>
                   </div>
                   {proposedDate.selected_date_reason && (
@@ -390,7 +435,7 @@ export default function OrganizerView({ selectedTrip }) {
             <StyledText>No proposed dates</StyledText>
           )}
         </div>
-        <StyledText fontSize="25px" fontWeight={700}>
+        <StyledText fontSize="20px" fontWeight={700}>
           Activities
         </StyledText>
         <StyledText fontSize="18px" fontWeight={600}>
@@ -462,7 +507,7 @@ export default function OrganizerView({ selectedTrip }) {
         ) : (
           <StyledText>No activities added yet</StyledText>
         )}
-        <StyledText fontSize="25px" fontWeight={700}>
+        <StyledText fontSize="20px" fontWeight={700}>
           Accomodation
         </StyledText>
         <div
@@ -626,7 +671,7 @@ export default function OrganizerView({ selectedTrip }) {
       >
         <div style={{ padding: '10px 20px' }}>
           <div className="tripModalHeader">
-            <StyledText fontSize="25px" fontWeight={700}>
+            <StyledText fontSize="20px" fontWeight={700}>
               {modalType === 'accommodationVotes'
                 ? `Votes for ${modalAccommodationData?.name}`
                 : modalType === 'activityVotes'
@@ -698,10 +743,10 @@ export default function OrganizerView({ selectedTrip }) {
                           <div
                             style={{ ...styles.avatar, width: 40, height: 40 }}
                           >
-                            {voter?.voter?.username?.[0]?.toUpperCase()}
+                            {voter?.voter?.firstname?.[0]?.toUpperCase()}
                           </div>
                           <StyledText fontSize="14px">
-                            {voter?.voter?.username}
+                            {voter?.voter?.firstname}
                           </StyledText>
                         </div>
                         <div
@@ -775,10 +820,10 @@ export default function OrganizerView({ selectedTrip }) {
                           <div
                             style={{ ...styles.avatar, width: 40, height: 40 }}
                           >
-                            {voter?.voter?.username?.[0]?.toUpperCase()}
+                            {voter?.voter?.firstname?.[0]?.toUpperCase()}
                           </div>
                           <StyledText fontSize="14px">
-                            {voter?.voter?.username}
+                            {voter?.voter?.firstname}
                           </StyledText>
                         </div>
                       </div>

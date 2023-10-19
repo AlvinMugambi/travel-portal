@@ -7,6 +7,7 @@ import Register from '../Screens/Auth/Register';
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/" element={<Dashboard />} />
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />

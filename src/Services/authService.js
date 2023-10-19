@@ -1,12 +1,13 @@
 import axios from 'axios';
-// const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
-const BASE_URL = 'http://127.0.0.1:8000';
+const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
+// const BASE_URL = 'http://127.0.0.1:8000';
 
-const register = async (email, username, phone_number, password) => {
+const register = async (email, firstname, surname, phone_number, password) => {
   return axios
     .post(`${BASE_URL}/auth/register`, {
       email,
-      username,
+      firstname,
+      surname,
       phone_number,
       password,
     })

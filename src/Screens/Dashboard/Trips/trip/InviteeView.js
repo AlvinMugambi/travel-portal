@@ -67,13 +67,14 @@ export default function InviteeView({
   const inviteeUpdatePreferredDate = () => {
     let startDate;
     let endDate;
-    // if (Array.isArray(prefferedDate)) {
-    //   startDate = format(new Date(prefferedDate[0]), 'yyyy-MM-dd');
-    //   endDate = format(new Date(prefferedDate[1]), 'yyyy-MM-dd');
-    // } else {
-    startDate = format(new Date(prefferedDate), 'yyyy-MM-dd');
-    endDate = format(new Date(prefferedDate), 'yyyy-MM-dd');
-    // }
+    console.log("prefferedDate===>", prefferedDate);
+    if (Array.isArray(prefferedDate)) {
+      startDate = new Date(prefferedDate[0]);
+      endDate = new Date(prefferedDate[1]);
+    } else {
+      startDate = new Date(prefferedDate);
+      endDate = new Date(prefferedDate);
+    }
 
     tripService
       .inviteeUpdatePreferredDate(
@@ -214,12 +215,12 @@ export default function InviteeView({
             confirmedAttendees.map((attendee) => (
               <div style={styles.attendee}>
                 <div style={{ ...styles.avatar, width: 50, height: 50 }}>
-                  {attendee?.attendee?.username[0]?.toUpperCase()}
+                  {attendee?.attendee?.firstname[0]?.toUpperCase()}
                 </div>
                 <StyledText>
-                  {attendee?.attendee?.username === userData?.username
+                  {attendee?.attendee?.email === userData?.email
                     ? 'You'
-                    : attendee?.attendee?.username}
+                    : attendee?.attendee?.firstname}
                 </StyledText>
               </div>
             ))
@@ -273,7 +274,7 @@ export default function InviteeView({
             <div style={{ marginTop: 20, marginBottom: 20 }}>
               <StyledText>Date is fixed on:</StyledText>
               <StyledText>
-                {format(new Date(selectedTrip?.selected_date), 'PPP')}
+                {selectedTrip?.selected_date}
               </StyledText>
             </div>
           ) : (
@@ -289,7 +290,7 @@ export default function InviteeView({
                     style={{ width: 15, height: 15, marginRight: 5 }}
                   />
                   <StyledText fontSize="15px">
-                    {format(new Date(selectedTrip?.selected_date), 'PPP')}
+                    {selectedTrip?.selected_date}
                   </StyledText>
                 </div>
                 <div>
@@ -338,13 +339,13 @@ export default function InviteeView({
               )}
             </>
           )}
-          <StyledText fontSize="25px" fontWeight={600}>
+          <StyledText fontSize="25px" fontWeight={600}  customStyle={{marginTop: 20}}>
             Activities
           </StyledText>
           <StyledText fontSize="18px" fontWeight={600}>
             Top voted activity
           </StyledText>
-          <div>
+          <div style={{marginBottom: 20}}>
             {topVotedActivity ? (
               <div
                 className="flexRowCenter"
@@ -370,12 +371,12 @@ export default function InviteeView({
               <StyledText>No votes yet</StyledText>
             )}
           </div>
-          <StyledText
+          {!!activities.length && <StyledText
             fontWeight={600}
             customStyle={{ marginTop: 20, marginBottom: 10 }}
           >
             Please select your top two preferred activities
-          </StyledText>
+          </StyledText>}
           {message.label && message.for === 'activities' && (
             <StyledText
               fontSize="16px"
@@ -440,16 +441,17 @@ export default function InviteeView({
                   <p style={{ marginRight: 20 }}>
                     {topVotedAccommodation.name}
                   </p>
-                  <p style={{ color: 'blue' }}>
-                    {' '}
-                    <a
-                      href={topVotedAccommodation?.link}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {topVotedAccommodation?.link}
-                    </a>
-                  </p>
+                  <div style={{width: 200}}>
+                    <p style={{ color: 'blue', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <a
+                        href={topVotedAccommodation?.link}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {topVotedAccommodation?.link}
+                      </a>
+                    </p>
+                  </div>
                 </div>
                 <div
                   style={styles.voteBtn}
@@ -465,7 +467,9 @@ export default function InviteeView({
                 </div>
               </div>
             ) : (
-              <StyledText>No votes yet</StyledText>
+              <div style={{marginBottom: 20}}>
+                <StyledText>No votes yet</StyledText>
+              </div>
             )}
           </div>
           {!!accommodations.length && (
@@ -496,15 +500,17 @@ export default function InviteeView({
                 >
                   <div className="flexRowCenter">
                     <p style={{ marginRight: 20 }}>{accommodation.name}</p>
-                    <p style={{ color: 'blue' }}>
-                      <a
-                        href={accommodation?.link}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {accommodation?.link}
-                      </a>
-                    </p>
+                    <div style={{width: 250}}>
+                      <p style={{ color: 'blue', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <a
+                          href={accommodation?.link}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {accommodation?.link}
+                        </a>
+                      </p>
+                    </div>
                   </div>
                   <div className="flexRowCenter">
                     <div
@@ -591,7 +597,7 @@ export default function InviteeView({
         <div style={{ padding: '10px 20px' }}>
           <div className="tripModalHeader">
             <StyledText fontSize="25px" fontWeight={700}>
-              {modalType === 'activities'
+              {modalType === 'activities' || modalType === 'activityVotes'
                 ? `Votes for ${modalData?.activity}`
                 : modalType === 'accommodationVote'
                 ? 'Reason'
@@ -627,10 +633,10 @@ export default function InviteeView({
                           <div
                             style={{ ...styles.avatar, width: 40, height: 40 }}
                           >
-                            {voter?.voter?.username?.[0]?.toUpperCase()}
+                            {voter?.voter?.firstname?.[0]?.toUpperCase()}
                           </div>
                           <StyledText fontSize="14px">
-                            {voter?.voter?.username}
+                            {voter?.voter?.firstname}
                           </StyledText>
                         </div>
                       </div>
@@ -659,10 +665,10 @@ export default function InviteeView({
                           <div
                             style={{ ...styles.avatar, width: 40, height: 40 }}
                           >
-                            {voter?.voter?.username?.[0]?.toUpperCase()}
+                            {voter?.voter?.firstname?.[0]?.toUpperCase()}
                           </div>
                           <StyledText fontSize="14px">
-                            {voter?.voter?.username}
+                            {voter?.voter?.firstname}
                           </StyledText>
                         </div>
                         <div
@@ -718,10 +724,10 @@ export default function InviteeView({
                           <div
                             style={{ ...styles.avatar, width: 40, height: 40 }}
                           >
-                            {voter?.voter?.username?.[0]?.toUpperCase()}
+                            {voter?.voter?.firstname?.[0]?.toUpperCase()}
                           </div>
                           <StyledText fontSize="14px">
-                            {voter?.voter?.username}
+                            {voter?.voter?.firstname}
                           </StyledText>
                         </div>
                       </div>
@@ -813,7 +819,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    width: 50,
     marginRight: 10,
   },
   voteBtn: {

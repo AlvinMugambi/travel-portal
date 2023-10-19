@@ -76,7 +76,7 @@ export default function Dashboard() {
             <div className="merchantInfo">
               <div className="avatar">
                 <StyledText fontSize="20px" fontWeight={700}>
-                  {userData?.username[0]?.toUpperCase()}
+                  {userData?.firstname[0]?.toUpperCase()}
                 </StyledText>
               </div>
               <div>
@@ -84,7 +84,7 @@ export default function Dashboard() {
                   Welcome
                 </StyledText>
                 <StyledText fontWeight={400}>
-                  {capitalizeFLetter(userData.username)}
+                  {capitalizeFLetter(userData?.firstname || '')}
                 </StyledText>
               </div>
             </div>

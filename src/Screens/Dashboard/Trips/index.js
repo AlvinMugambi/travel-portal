@@ -45,6 +45,7 @@ export default function Trips({ setDrawerOpen }) {
   const jwtToken = localStorage.getItem('token');
   const userData = JSON.parse(localStorage.getItem('userData'));
   const [mainAgenda, setMainAgenda] = useState([]);
+  const [duration, setDuration] = useState(false);
 
   const [userTrips, setUserTrips] = useState([]);
   const [invitedTrips, setInvitedTrips] = useState([]);
@@ -126,8 +127,21 @@ export default function Trips({ setDrawerOpen }) {
     }
     let _startDate;
     let _endDate;
-    _startDate = format(new Date(selectedTripDate), 'PPP');
-    _endDate = format(new Date(selectedTripDate), 'PPP');
+      if (Array.isArray(selectedTripDate)) {
+        _startDate = format(new Date(selectedTripDate[0]), 'PPP');
+        _endDate = format(new Date(selectedTripDate[1]), 'PPP');
+      } else {
+        _startDate = format(new Date(selectedTripDate), 'PPP');
+        _endDate = format(new Date(selectedTripDate), 'PPP');
+      }
+
+    // if (fixedDate) {
+    //   _startDate = format(selectedTripDate, 'PPP');
+    //   _endDate = format(selectedTripDate, 'PPP');
+    // } else {
+    //   _startDate = format(selectedTripDate[0], 'PPP');
+    //   _endDate = format(selectedTripDate[1], 'PPP');
+    // }
 
     tripService
       .createTrip(
@@ -136,8 +150,9 @@ export default function Trips({ setDrawerOpen }) {
         description,
         _startDate,
         _endDate,
+        duration,
         requirements,
-        selectedTripDate,
+        _startDate,
         fixedDate,
         jwtToken,
       )
@@ -226,10 +241,10 @@ export default function Trips({ setDrawerOpen }) {
           {/* <NotificationIcon className='notification' /> */}
           <div className="dash-avatar">
             <StyledText fontSize="20px" fontWeight={700}>
-              {userData?.username[0]?.toUpperCase()}
+              {userData?.firstname[0]?.toUpperCase()}
             </StyledText>
           </div>
-          {!isTabletOrMobile && <p>{capitalizeFLetter(userData?.username)}</p>}
+          {!isTabletOrMobile && <p>{capitalizeFLetter(userData?.firstname)}</p>}
         </div>
       </div>
       {selectedTrip && (
@@ -531,18 +546,27 @@ export default function Trips({ setDrawerOpen }) {
                     </p>
                   </div>
                   <div>
+                  {fixedDate && 
+                    <div>
+                      <StyledText fontSize={16}>How long is the overall trip?</StyledText>
+                      <Input
+                        width={'100%'}
+                        placeholder={'E.g. 5 days'}
+                        onChange={(e) => setDuration(e.target.value)}
+                      />
+                  </div>}
                     <StyledText fontSize={16}>
-                      Select date
-                      {/* {!fixedDate && (
+                      Select date {' '}
+                      {!fixedDate && (
                         <span>
-                          {' '}
                           range
                         </span>
-                      )} */}
+                      )}
                     </StyledText>
                     <Calendar
                       onChange={setSelectedTripDate}
                       value={selectedTripDate}
+                      selectRange={!fixedDate}
                     />
                   </div>
                 </FormView>
@@ -799,7 +823,7 @@ export default function Trips({ setDrawerOpen }) {
                     </StyledText>
                     <Input
                       width={'100%'}
-                      placeholder={'e.g. Carry sports shoes'}
+                      placeholder={'e.g. Bring your golfclubs and sunscreen'}
                       textArea
                       onChange={(e) => setRequirements(e.target.value)}
                     />

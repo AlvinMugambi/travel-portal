@@ -22,7 +22,8 @@ const validateEmail = (email) => {
 
 export default function Register() {
   const [email, setEmailAddress] = useState('');
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [surname, setSurname] = useState('');
   //   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,7 @@ export default function Register() {
       return;
     }
     setLoading(true);
-    authService.register(email, username, '', password).then((res) => {
+    authService.register(email, firstName, surname, '', password).then((res) => {
       setLoading(false);
       if (res.status === 201) {
         setJwt_token(res.token);
@@ -87,27 +88,37 @@ export default function Register() {
               </StyledText>
             )}
           </div>
+          <div style={{...styles.input, ...styles.flexCenter, justifyContent: 'space-between'}}>
+            <div>
+              <StyledText fontSize={16}>First name</StyledText>
+              <Input
+                width={isTabletOrMobile ? '100%' : 200}
+                placeholder={'Enter first name'}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            <div>
+              <StyledText fontSize={16}>Surname</StyledText>
+              <Input
+                width={isTabletOrMobile ? '100%' : 200}
+                placeholder={'Enter surname'}
+                onChange={(e) => setSurname(e.target.value)}
+              />
+            </div>
+          </div>
           <div style={styles.input}>
             <StyledText fontSize={16}>Email</StyledText>
             <Input
               width={isTabletOrMobile ? '100%' : 410}
-              placeHolder={'Enter Email'}
+              placeholder={'Enter Email'}
               onChange={(e) => setEmailAddress(e.target.value)}
-            />
-          </div>
-          <div style={styles.input}>
-            <StyledText fontSize={16}>Username</StyledText>
-            <Input
-              width={isTabletOrMobile ? '100%' : 410}
-              placeHolder={'Enter username'}
-              onChange={(e) => setUsername(e.target.value)}
             />
           </div>
           {/* <div style={styles.input}>
             <StyledText fontSize={16}>Phone number</StyledText>
             <Input
               width={410}
-              placeHolder={'e.g. 254701234567'}
+              placeholder={'e.g. 254701234567'}
               onChange={(e) => setPhoneNumber(e.target.value)}
             />
           </div> */}
@@ -116,7 +127,7 @@ export default function Register() {
             <Input
               width={isTabletOrMobile ? '100%' : 410}
               type={'password'}
-              placeHolder={'Enter password'}
+              placeholder={'Enter password'}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
@@ -130,11 +141,12 @@ export default function Register() {
                 )
               }
               width={isTabletOrMobile ? '100%' : 420}
-              disabled={!email || !username || !password}
+              disabled={!email || !firstName || !surname || !password}
               onClick={onSubmit}
             />
           </div>
         </FormView>
+        <StyledText>Already have an account? <span onClick={() => navigate('/Login')} style={{color: 'blue'}}>Log in</span></StyledText>
       </div>
     </div>
   );
@@ -189,4 +201,5 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  
 };
