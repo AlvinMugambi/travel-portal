@@ -1,24 +1,29 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import StyledText from '../../../../Components/Common/StyledText';
 import Button from '../../../../Components/Common/Button';
-import Calendar from 'react-calendar';
+// import Calendar from 'react-calendar';
 import { format } from 'date-fns';
 import { tripService } from '../../../../Services/tripService';
 import Input from '../../../../Components/Common/Input';
 import { useMediaQuery } from 'react-responsive';
 import Modal from '../../../../Components/Common/Modal';
 import FormView from '../../../../Components/Common/FormView';
+import { DatePicker, Calendar } from 'react-multi-date-picker';
+import { scrapperStaticInput, client } from '../../../../static';
+import { formatDate } from '../../../../Utils/helpers';
 
 export default function InviteeView({
   selectedTrip,
   inviteStatus,
   setInviteStatus,
   setTripUpdated,
+  setPreviewAccommodation,
+  setPreviewModalVisible,
 }) {
   const jwtToken = localStorage.getItem('token');
   const userData = JSON.parse(localStorage.getItem('userData'));
   const [attendees, setAttendees] = useState([]);
-  const [prefferedDate, setPrefferedDate] = useState(new Date());
+  const [prefferedDate, setPrefferedDate] = useState([new Date()]);
   const [isSuggestingDate, setIsSuggestingDate] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
@@ -32,6 +37,47 @@ export default function InviteeView({
   const [accommodations, setAccommodations] = useState([]);
   const [voters, setVoters] = useState([]);
   const [modalData, setModalData] = useState();
+  const [scrappedItems, setScrappedItems] = useState({});
+
+  console.log('selectedTrip====>', selectedTrip);
+  useEffect(() => {
+    const fetchData = async () => {
+      const scrapedData = {};
+
+      for (const acc of accommodations) {
+        const { name, link } = acc;
+        const { defaultDatasetId } = await client
+          .actor('QGcJvQyG9NqMKTYPH')
+          .call({
+            ...scrapperStaticInput,
+            search: name,
+            startUrls: [{ url: link }],
+          });
+        try {
+          const res = await client.dataset(defaultDatasetId).listItems();
+          scrapedData[name] = res.items;
+        } catch (error) {
+          console.error(`Error fetching data for ${name}:`, error);
+        }
+      }
+
+      setScrappedItems((prevItems) => ({
+        ...prevItems,
+        ...scrapedData,
+      }));
+    };
+
+    fetchData();
+  }, [accommodations]);
+
+  const accomodationData = useCallback(
+    (accommodationName) => {
+      return scrappedItems?.[accommodationName]?.find(
+        (item) => item.name === accommodationName,
+      );
+    },
+    [scrappedItems],
+  );
 
   useEffect(() => {
     tripService.getTripActivities(selectedTrip?.id, jwtToken).then((res) => {
@@ -65,32 +111,35 @@ export default function InviteeView({
   };
 
   const inviteeUpdatePreferredDate = () => {
-    let startDate;
-    let endDate;
-    console.log("prefferedDate===>", prefferedDate);
-    if (Array.isArray(prefferedDate)) {
-      startDate = new Date(prefferedDate[0]);
-      endDate = new Date(prefferedDate[1]);
-    } else {
-      startDate = new Date(prefferedDate);
-      endDate = new Date(prefferedDate);
-    }
+    console.log('prefferedDate===>', prefferedDate);
+    prefferedDate.forEach((dateArray) => {
+      let startDate;
+      let endDate;
 
-    tripService
-      .inviteeUpdatePreferredDate(
-        selectedTrip.id,
-        startDate,
-        endDate,
-        reason,
-        jwtToken,
-      )
-      .then((res) => {
-        console.log('res===>', res);
-        setDateMessage('Your suggestion has been sent to the trip organiser');
-        setTimeout(() => {
-          setDateMessage('');
-        }, 2000);
-      });
+      if (dateArray.length === 1) {
+        startDate = new Date(dateArray[0]);
+        endDate = new Date(dateArray[0]);
+      } else {
+        startDate = new Date(dateArray[0]);
+        endDate = new Date(dateArray[1]);
+      }
+
+      tripService
+        .inviteeUpdatePreferredDate(
+          selectedTrip.id,
+          startDate,
+          endDate,
+          reason,
+          jwtToken,
+        )
+        .then((res) => {
+          console.log('res===>', res);
+          setDateMessage('Your suggestion has been sent to the trip organiser');
+          setTimeout(() => {
+            setDateMessage('');
+          }, 2000);
+        });
+    });
   };
 
   const completeInvite = () => {
@@ -135,6 +184,7 @@ export default function InviteeView({
         console.log('res====>', res);
       });
   };
+  console.log('prefferredDate====>', prefferedDate);
 
   const voteAccommodation = (accommodation) => {
     tripService
@@ -181,6 +231,10 @@ export default function InviteeView({
       return currentObj.votes > maxObj.votes ? currentObj : maxObj;
     });
 
+    const data = accomodationData(maxVotesObject?.name);
+    if (data) {
+      return { ...maxVotesObject, ...data };
+    }
     return maxVotesObject;
   }, [accommodations]);
 
@@ -203,6 +257,8 @@ export default function InviteeView({
       ),
     [selectedTrip, accommodations],
   );
+
+  console.log('preferred date===>', prefferedDate);
 
   return (
     <>
@@ -274,7 +330,7 @@ export default function InviteeView({
             <div style={{ marginTop: 20, marginBottom: 20 }}>
               <StyledText>Date is fixed on:</StyledText>
               <StyledText>
-                {selectedTrip?.selected_date}
+                {selectedTrip?.start_date} - {selectedTrip?.end_date}
               </StyledText>
             </div>
           ) : (
@@ -290,7 +346,8 @@ export default function InviteeView({
                     style={{ width: 15, height: 15, marginRight: 5 }}
                   />
                   <StyledText fontSize="15px">
-                    {selectedTrip?.selected_date}
+                    {formatDate(selectedTrip?.start_date)} -{' '}
+                    {formatDate(selectedTrip?.end_date)}
                   </StyledText>
                 </div>
                 <div>
@@ -312,9 +369,17 @@ export default function InviteeView({
                 <>
                   <StyledText>Please select your preferred date</StyledText>
                   <Calendar
-                    onChange={setPrefferedDate}
-                    value={prefferedDate}
+                    onChange={(e) => {
+                      console.log('e===>', e);
+                      setPrefferedDate(e);
+                    }}
+                    // value={prefferedDate}
                     className={'calendar'}
+                    // selectRange
+                    multiple
+                    range
+                    minDate={new Date(selectedTrip?.start_date)}
+                    maxDate={new Date(selectedTrip?.end_date)}
                   />
                   <Input
                     height={50}
@@ -339,13 +404,17 @@ export default function InviteeView({
               )}
             </>
           )}
-          <StyledText fontSize="25px" fontWeight={600}  customStyle={{marginTop: 20}}>
+          <StyledText
+            fontSize="25px"
+            fontWeight={600}
+            customStyle={{ marginTop: 20 }}
+          >
             Activities
           </StyledText>
           <StyledText fontSize="18px" fontWeight={600}>
             Top voted activity
           </StyledText>
-          <div style={{marginBottom: 20}}>
+          <div style={{ marginBottom: 20 }}>
             {topVotedActivity ? (
               <div
                 className="flexRowCenter"
@@ -371,12 +440,14 @@ export default function InviteeView({
               <StyledText>No votes yet</StyledText>
             )}
           </div>
-          {!!activities.length && <StyledText
-            fontWeight={600}
-            customStyle={{ marginTop: 20, marginBottom: 10 }}
-          >
-            Please select your top two preferred activities
-          </StyledText>}
+          {!!activities.length && (
+            <StyledText
+              fontWeight={600}
+              customStyle={{ marginTop: 20, marginBottom: 10 }}
+            >
+              Please select your top two preferred activities
+            </StyledText>
+          )}
           {message.label && message.for === 'activities' && (
             <StyledText
               fontSize="16px"
@@ -433,41 +504,147 @@ export default function InviteeView({
           </StyledText>
           <div>
             {topVotedAccommodation ? (
-              <div
-                className="flexRowCenter"
-                style={{ justifyContent: 'space-between' }}
-              >
-                <div className="flexRowCenter">
-                  <p style={{ marginRight: 20 }}>
-                    {topVotedAccommodation.name}
-                  </p>
-                  <div style={{width: 200}}>
-                    <p style={{ color: 'blue', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      <a
-                        href={topVotedAccommodation?.link}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {topVotedAccommodation?.link}
-                      </a>
-                    </p>
+              // <div
+              //   className="flexRowCenter"
+              //   style={{ justifyContent: 'space-between' }}
+              // >
+              //   <div className="flexRowCenter">
+              //     <p style={{ marginRight: 20 }}>
+              //       {topVotedAccommodation.name}
+              //     </p>
+              //     <div style={{ width: 200 }}>
+              //       <p
+              //         style={{
+              //           color: 'blue',
+              //           whiteSpace: 'nowrap',
+              //           overflow: 'hidden',
+              //           textOverflow: 'ellipsis',
+              //         }}
+              //       >
+              //         <a
+              //           href={topVotedAccommodation?.link}
+              //           target="_blank"
+              //           rel="noreferrer"
+              //         >
+              //           {topVotedAccommodation?.link}
+              //         </a>
+              //       </p>
+              //     </div>
+              //   </div>
+              //   <div
+              //     style={styles.voteBtn}
+              //     onClick={() => {
+              //       setModalType('accommodationVotes');
+              //       setModalVisible(true);
+              //       setModalData(topVotedAccommodation);
+              //       setVoters(topVotedAccommodation.voters);
+              //     }}
+              //   >
+              //     <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
+              //     {topVotedAccommodation.votes}
+              //   </div>
+              // </div>
+              <div className="ripple-btn" style={styles.accommodationCardView}>
+                <div style={styles.accommodationBox}>
+                  <div
+                    style={styles.accommodationImg}
+                    onClick={() => {
+                      const data = accomodationData(topVotedAccommodation.name);
+                      if (data) {
+                        data.voters = topVotedAccommodation.voters;
+                        setPreviewAccommodation(data);
+                        setPreviewModalVisible(true);
+                      } else {
+                        window.open(
+                          topVotedAccommodation?.link,
+                          '_blank',
+                          'rel=noopener noreferrer',
+                        );
+                      }
+                    }}
+                  >
+                    <img
+                      src={
+                        topVotedAccommodation?.image ||
+                        require('../../../../Assets/Images/Diani_Beach.jpg')
+                      }
+                      alt=""
+                      style={{ ...styles.accommodationImg, height: '90%' }}
+                    />
                   </div>
-                </div>
-                <div
-                  style={styles.voteBtn}
-                  onClick={() => {
-                    setModalType('accommodationVotes');
-                    setModalVisible(true);
-                    setModalData(topVotedAccommodation);
-                    setVoters(topVotedAccommodation.voters);
-                  }}
-                >
-                  <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                  {topVotedAccommodation.votes}
+                  <div
+                    style={{
+                      paddingLeft: 10,
+                      paddingRight: 10,
+                      ...styles.flexRowCenter,
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <StyledText fontWeight={600}>
+                        {topVotedAccommodation?.name}
+                      </StyledText>
+                      {topVotedAccommodation?.address?.street && (
+                        <div
+                          className="flexRowCenter"
+                          style={{ width: 50, flexShrink: 1 }}
+                        >
+                          <img
+                            src={require('../../../../Assets/Images/location.png')}
+                            alt="loc"
+                            style={{ width: 15, height: 15, marginRight: 5 }}
+                          />
+                          <StyledText>
+                            {topVotedAccommodation?.address?.street}
+                          </StyledText>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      {topVotedAccommodation?.rating ? (
+                        <div
+                          style={{
+                            ...styles.flexRowCenter,
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <img
+                            src={require('../../../../Assets/Icons/rating.png')}
+                            alt=""
+                            style={{ width: 20, marginRight: 5 }}
+                          />
+                          <StyledText fontSize="14px">
+                            {topVotedAccommodation?.rating}
+                          </StyledText>
+                        </div>
+                      ) : (
+                        <div style={{ height: 30 }} />
+                      )}
+                      {topVotedAccommodation?.price && (
+                        <StyledText fontWeight={500} fontSize="14px">
+                          Ksh {topVotedAccommodation?.price}
+                        </StyledText>
+                      )}
+                      <div className="flexRowCenter">
+                        <div
+                          style={{ ...styles.voteBtn, marginRight: 15 }}
+                          onClick={() => {
+                            setModalType('accommodationVotes');
+                            setModalVisible(true);
+                            setModalData(topVotedAccommodation);
+                            setVoters(topVotedAccommodation.voters);
+                          }}
+                        >
+                          <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
+                          {topVotedAccommodation.votes || 0}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div style={{marginBottom: 20}}>
+              <div style={{ marginBottom: 20 }}>
                 <StyledText>No votes yet</StyledText>
               </div>
             )}
@@ -490,63 +667,182 @@ export default function InviteeView({
               {message.label}
             </StyledText>
           )}
-          <div>
-            {accommodations.length ? (
-              accommodations.map((accommodation, index) => (
-                <div
-                  key={index}
-                  className="flexRowCenter"
-                  style={{ justifyContent: 'space-between' }}
-                >
-                  <div className="flexRowCenter">
-                    <p style={{ marginRight: 20 }}>{accommodation.name}</p>
-                    <div style={{width: 250}}>
-                      <p style={{ color: 'blue', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        <a
-                          href={accommodation?.link}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {accommodation?.link}
-                        </a>
-                      </p>
+          <div style={styles.acommodationView}>
+            {!!accommodations.length &&
+              accommodations.map((accommodation, index) => {
+                const data = accomodationData(accommodation.name);
+                return (
+                  // <div
+                  //   key={index}
+                  //   className="flexRowCenter"
+                  //   style={{ justifyContent: 'space-between' }}
+                  // >
+                  //   <div className="flexRowCenter">
+                  //     <p style={{ marginRight: 20 }}>{accommodation.name}</p>
+                  //     <div style={{width: 250}}>
+                  //       <p style={{ color: 'blue', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  //         <a
+                  //           href={accommodation?.link}
+                  //           target="_blank"
+                  //           rel="noreferrer"
+                  //         >
+                  //           {accommodation?.link}
+                  //         </a>
+                  //       </p>
+                  //     </div>
+                  //   </div>
+                  //   <div className="flexRowCenter">
+                  //     <div
+                  //       style={{ ...styles.voteBtn, marginRight: 15 }}
+                  //       onClick={() => {
+                  //         setModalType('accommodationVotes');
+                  //         setModalVisible(true);
+                  //         setModalData(accommodation);
+                  //         setVoters(accommodation.voters);
+                  //       }}
+                  //     >
+                  //       <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
+                  //       {accommodation.votes || 0}
+                  //     </div>
+                  //     <div
+                  //       style={{
+                  //         ...styles.voteBtn,
+                  //         backgroundColor: 'blue',
+                  //         color: 'white',
+                  //         paddingRight: 10,
+                  //         paddingLeft: 10,
+                  //       }}
+                  //       onClick={() => {
+                  //         setModalVisible(true);
+                  //         setModalType('accommodationVote');
+                  //         setModalData(accommodation);
+                  //       }}
+                  //     >
+                  //       Vote
+                  //     </div>
+                  //   </div>
+                  // </div>
+                  <div
+                    className="ripple-btn"
+                    style={styles.accommodationCardView}
+                  >
+                    <div style={styles.accommodationBox}>
+                      <div
+                        style={styles.accommodationImg}
+                        onClick={() => {
+                          if (data) {
+                            data.voters = accommodation.voters;
+                            setPreviewAccommodation(data);
+                            setPreviewModalVisible(true);
+                          } else {
+                            window.open(
+                              accommodation?.link,
+                              '_blank',
+                              'rel=noopener noreferrer',
+                            );
+                          }
+                        }}
+                      >
+                        <img
+                          src={
+                            data?.image ||
+                            require('../../../../Assets/Images/Diani_Beach.jpg')
+                          }
+                          alt=""
+                          style={{ ...styles.accommodationImg, height: '90%' }}
+                        />
+                      </div>
+                      <div
+                        style={{
+                          paddingLeft: 10,
+                          paddingRight: 10,
+                          ...styles.flexRowCenter,
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <div>
+                          <StyledText fontWeight={600}>
+                            {accommodation?.name}
+                          </StyledText>
+                          {data?.address?.street && (
+                            <div
+                              className="flexRowCenter"
+                              style={{ width: 50, flexShrink: 1 }}
+                            >
+                              <img
+                                src={require('../../../../Assets/Images/location.png')}
+                                alt="loc"
+                                style={{
+                                  width: 15,
+                                  height: 15,
+                                  marginRight: 5,
+                                }}
+                              />
+                              <StyledText>{data?.address?.street}</StyledText>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          {data?.rating ? (
+                            <div
+                              style={{
+                                ...styles.flexRowCenter,
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <img
+                                src={require('../../../../Assets/Icons/rating.png')}
+                                alt=""
+                                style={{ width: 20, marginRight: 5 }}
+                              />
+                              <StyledText fontSize="14px">
+                                {data?.rating}
+                              </StyledText>
+                            </div>
+                          ) : (
+                            <div style={{ height: 30 }} />
+                          )}
+                          {data?.price && (
+                            <StyledText fontWeight={500} fontSize="14px">
+                              Ksh {data?.price}
+                            </StyledText>
+                          )}
+                          <div className="flexRowCenter">
+                            <div
+                              style={{ ...styles.voteBtn, marginRight: 15 }}
+                              onClick={() => {
+                                setModalType('accommodationVotes');
+                                setModalVisible(true);
+                                setModalData(accommodation);
+                                setVoters(accommodation.voters);
+                              }}
+                            >
+                              <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
+                              {accommodation.votes || 0}
+                            </div>
+                            <div
+                              style={{
+                                ...styles.voteBtn,
+                                backgroundColor: 'blue',
+                                color: 'white',
+                                paddingRight: 10,
+                                paddingLeft: 10,
+                              }}
+                              onClick={() => {
+                                setModalVisible(true);
+                                setModalType('accommodationVote');
+                                setModalData(accommodation);
+                              }}
+                            >
+                              Vote
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flexRowCenter">
-                    <div
-                      style={{ ...styles.voteBtn, marginRight: 15 }}
-                      onClick={() => {
-                        setModalType('accommodationVotes');
-                        setModalVisible(true);
-                        setModalData(accommodation);
-                        setVoters(accommodation.voters);
-                      }}
-                    >
-                      <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                      {accommodation.votes || 0}
-                    </div>
-                    <div
-                      style={{
-                        ...styles.voteBtn,
-                        backgroundColor: 'blue',
-                        color: 'white',
-                        paddingRight: 10,
-                        paddingLeft: 10,
-                      }}
-                      onClick={() => {
-                        setModalVisible(true);
-                        setModalType('accommodationVote');
-                        setModalData(accommodation);
-                      }}
-                    >
-                      Vote
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <StyledText>No Accommodations added yet</StyledText>
-            )}
+                );
+              })}
           </div>
           <div
             style={{
@@ -751,7 +1047,7 @@ export default function InviteeView({
                   <div style={{ marginTop: 30 }}>
                     <Button
                       label={'Submit'}
-                      width={isTabletOrMobile ? '100%' : 420}
+                      width={'100%'}
                       onClick={() => {
                         voteAccommodation(modalData);
                       }}
@@ -826,7 +1122,7 @@ const styles = {
     padding: 5,
     borderRadius: 10,
     cursor: 'pointer',
-    marginBottom: 15,
+    // marginBottom: 15,
   },
   confirmCheck: {
     width: 40,

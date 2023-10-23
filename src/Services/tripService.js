@@ -1,6 +1,6 @@
 import axios from 'axios';
 const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
-// const BASE_URL = 'http://127.0.0.1:8000';
+// const BASE_URL = 'http://127.0.0.1:8400';
 
 const createTrip = async (
   trip_name,
@@ -46,13 +46,14 @@ const createTrip = async (
     });
 };
 
-const updateTripDate = async (trip_id, selected_date, jwtToken) => {
+const updateTripDate = async (trip_id, start_date, end_date, jwtToken) => {
   return axios
     .patch(
       `${BASE_URL}/trips/update`,
       {
         trip_id,
-        selected_date,
+        start_date,
+        end_date,
       },
       {
         headers: {

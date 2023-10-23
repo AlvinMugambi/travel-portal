@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CirclesWithBar } from 'react-loader-spinner';
 
 import StyledText from '../../../../Components/Common/StyledText';
 import Button from '../../../../Components/Common/Button';
@@ -11,15 +13,21 @@ import { useMediaQuery } from 'react-responsive';
 import Modal from '../../../../Components/Common/Modal';
 import FormView from '../../../../Components/Common/FormView';
 import { formatDate } from '../../../../Utils/helpers';
+import { scrapperStaticInput, client } from '../../../../static';
 
-export default function OrganizerView({ selectedTrip }) {
+export default function OrganizerView({
+  selectedTrip,
+  setPreviewAccommodation,
+  setPreviewModalVisible,
+  setTripUpdated,
+}) {
   const jwtToken = localStorage.getItem('token');
   const userData = JSON.parse(localStorage.getItem('userData'));
   const [attendees, setAttendees] = useState([]);
   const [users, setUsers] = useState([]);
   const [inviteSent, setInviteSent] = useState(false);
   const [isEdittingDate, setIsEdittingDate] = useState(false);
-  const [selectedDate, setSelectedDate] = useState();
+  const [selectedDate, setSelectedDate] = useState([]);
   const [proposedDates, setProposedDates] = useState([]);
   const [activities, setActivities] = useState([]);
   const [accommodations, setAccommodations] = useState([]);
@@ -32,9 +40,62 @@ export default function OrganizerView({ selectedTrip }) {
   const [modalType, setModalType] = useState('accomodation');
   const [modalVisible, setModalVisible] = useState(false);
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
-  const [tripUpdated, setTripUpdated] = useState(false);
+  const [tripUpdated, _setTripUpdated] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [voters, setVoters] = useState([]);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [scrappedItems, setScrappedItems] = useState({});
+
+  useEffect(() => {
+    if (!selectedDate.length) {
+      setSelectedDate([
+        new Date(selectedTrip?.start_date?.replace(/[(),']/g, '')),
+        new Date(selectedTrip?.end_date?.replace(/[(),']/g, '')),
+      ]);
+    }
+  }, []);
+
+  console.log('scrappedItems====>', scrappedItems);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const scrapedData = {};
+
+      for (const acc of accommodations) {
+        const { name, link } = acc;
+        const { defaultDatasetId } = await client
+          .actor('QGcJvQyG9NqMKTYPH')
+          .call({
+            ...scrapperStaticInput,
+            search: name,
+            startUrls: [{ url: link }],
+          });
+        try {
+          const res = await client.dataset(defaultDatasetId).listItems();
+          scrapedData[name] = res.items;
+        } catch (error) {
+          console.error(`Error fetching data for ${name}:`, error);
+        }
+      }
+
+      setScrappedItems((prevItems) => ({
+        ...prevItems,
+        ...scrapedData,
+      }));
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [accommodations]);
+
+  const accomodationData = useCallback(
+    (accommodationName) => {
+      return scrappedItems?.[accommodationName]?.find(
+        (item) => item.name === accommodationName,
+      );
+    },
+    [scrappedItems],
+  );
 
   const handleShare = () => {
     setCopiedLink(false);
@@ -52,7 +113,9 @@ export default function OrganizerView({ selectedTrip }) {
     } else {
       console.log('Web Share API not supported on this browser');
       navigator.clipboard
-        .writeText(text + ' URL: https://traval-tech-portal.netlify.app/register')
+        .writeText(
+          text + ' URL: https://traval-tech-portal.netlify.app/register',
+        )
         .then(() => {
           setCopiedLink(true);
           setTimeout(() => {
@@ -98,6 +161,10 @@ export default function OrganizerView({ selectedTrip }) {
       return currentObj.votes > maxObj.votes ? currentObj : maxObj;
     });
 
+    const data = accomodationData(maxVotesObject?.name);
+    if (data) {
+      return { ...maxVotesObject, ...data };
+    }
     return maxVotesObject;
   }, [accommodations]);
 
@@ -130,27 +197,28 @@ export default function OrganizerView({ selectedTrip }) {
     if (!userSearchPhrase) {
       return [];
     } else {
-      return uninvitedUsers.filter((item) =>
-        item.firstname
-          .toUpperCase()
-          .replaceAll(' ', '')
-          .includes(
-            userSearchPhrase
-              .toUpperCase()
-              .trim()
-              .replaceAll(' ', '')
-              .replace(/\s/g, ''),
-          ) ||
+      return uninvitedUsers.filter(
+        (item) =>
+          item.firstname
+            .toUpperCase()
+            .replaceAll(' ', '')
+            .includes(
+              userSearchPhrase
+                .toUpperCase()
+                .trim()
+                .replaceAll(' ', '')
+                .replace(/\s/g, ''),
+            ) ||
           item.surname
-          .toUpperCase()
-          .replaceAll(' ', '')
-          .includes(
-            userSearchPhrase
-              .toUpperCase()
-              .trim()
-              .replaceAll(' ', '')
-              .replace(/\s/g, ''),
-          )
+            .toUpperCase()
+            .replaceAll(' ', '')
+            .includes(
+              userSearchPhrase
+                .toUpperCase()
+                .trim()
+                .replaceAll(' ', '')
+                .replace(/\s/g, ''),
+            ),
       );
     }
   }, [userSearchPhrase, uninvitedUsers]);
@@ -169,19 +237,18 @@ export default function OrganizerView({ selectedTrip }) {
   };
 
   const updateTripDate = (selected_available_startdate) => {
-    console.log('selectedDate==>', selectedDate);
-    const date = new Date(selected_available_startdate) 
+    const startDate = new Date(selected_available_startdate[0]);
+    const endDate = new Date(selected_available_startdate[1]);
 
-    tripService.updateTripDate(selectedTrip.id, date, jwtToken).then((res) => {
-      if (res.status === 200) {
-        console.log('res==>', res);
-        console.log(
-          'selected_available_startdate==>',
-          date,
-        );
-        setSelectedDate(date);
-      }
-    });
+    tripService
+      .updateTripDate(selectedTrip.id, startDate, endDate, jwtToken)
+      .then((res) => {
+        if (res.status === 200) {
+          console.log('res==>', res);
+          setSelectedDate(selected_available_startdate);
+          setTripUpdated((prev) => !prev);
+        }
+      });
   };
 
   const addAccommodation = () => {
@@ -194,7 +261,7 @@ export default function OrganizerView({ selectedTrip }) {
       )
       .then((res) => {
         console.log('res====>', res);
-        setTripUpdated(!tripUpdated);
+        _setTripUpdated(!tripUpdated);
       });
   };
 
@@ -203,20 +270,17 @@ export default function OrganizerView({ selectedTrip }) {
       .addTripActivity(selectedTrip?.id, activity, jwtToken)
       .then((res) => {
         console.log('res====>', res);
-        setTripUpdated(!tripUpdated);
+        _setTripUpdated(!tripUpdated);
       });
   };
 
-  const organiserSelectAccomodation = () => {
+  const organiserSelectAccomodation = (data) => {
     tripService
-      .updateTripAccomodation(
-        selectedTrip?.id,
-        modalAccommodationData?.id,
-        jwtToken,
-      )
+      .updateTripAccomodation(selectedTrip?.id, data?.id, jwtToken)
       .then((res) => {
         console.log('res===>', res);
         setModalVisible(false);
+        setTripUpdated((prev) => !prev);
         setSelectedAccommodation(modalAccommodationData);
       });
   };
@@ -260,30 +324,40 @@ export default function OrganizerView({ selectedTrip }) {
         {!!uninvitedUsers.length && (
           <div>
             <StyledText fontWeight={600}>
-              Search a  user and click on their name to send an invite
+              Search a user and click on their name to send an invite
             </StyledText>
 
             {inviteSent && <StyledText color="green">Invite sent!</StyledText>}
             <Input
-                placeholder={'Search user using their first name or surname'}
-                width={'100%'}
-                customStyles={{marginBottom: 20}}
-                onChange={(e) => setUserSearchPhrase(e.target.value)}
-              />
-              <div className='flexRowCenter' style={{justifyContent: 'flex-end'}}>
-                <StyledText link onClick={handleShare} customStyle={{marginRight: copiedLink ? 10 : 0}}>Send an invite to the platform</StyledText>
-                {copiedLink && <StyledText color='green'>Link copied!</StyledText>}
-              </div>
+              placeholder={'Search user using their first name or surname'}
+              width={'100%'}
+              customStyles={{ marginBottom: 20 }}
+              onChange={(e) => setUserSearchPhrase(e.target.value)}
+            />
+            <div
+              className="flexRowCenter"
+              style={{ justifyContent: 'flex-end' }}
+            >
+              <StyledText
+                link
+                onClick={handleShare}
+                customStyle={{ marginRight: copiedLink ? 10 : 0 }}
+              >
+                Send an invite to the platform
+              </StyledText>
+              {copiedLink && (
+                <StyledText color="green">Link copied!</StyledText>
+              )}
+            </div>
             <div style={{ ...styles.flexRowCenter, flexWrap: 'wrap' }}>
               {filteredUninvitedUsers.map((user) => (
-                <div
-                  style={styles.attendee}
-                  onClick={() => invite(user.email)}
-                >
+                <div style={styles.attendee} onClick={() => invite(user.email)}>
                   <div style={{ ...styles.avatar, width: 50, height: 50 }}>
                     {user?.firstname[0]?.toUpperCase()}
                   </div>
-                  <StyledText>{user?.firstname} {user.surname}</StyledText>
+                  <StyledText>
+                    {user?.firstname} {user.surname}
+                  </StyledText>
                 </div>
               ))}
             </div>
@@ -302,8 +376,9 @@ export default function OrganizerView({ selectedTrip }) {
           <div>
             <Calendar
               onChange={setSelectedDate}
-              value={selectedDate || new Date()}
+              defaultValue={selectedDate}
               className={'calendar'}
+              selectRange
             />
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Button
@@ -344,7 +419,17 @@ export default function OrganizerView({ selectedTrip }) {
                     style={{ width: 15, height: 15, marginRight: 5 }}
                   />
                   <StyledText fontSize="15px">
-                    {selectedDate ? formatDate(selectedDate) : formatDate(selectedTrip?.selected_date?.replace(/[(),']/g, ''))}
+                    {selectedDate.length
+                      ? formatDate(selectedDate[0]) +
+                        ' - ' +
+                        formatDate(selectedDate[1])
+                      : formatDate(
+                          selectedTrip?.start_date?.replace(/[(),']/g, ''),
+                        ) +
+                        ' - ' +
+                        formatDate(
+                          selectedTrip?.end_date?.replace(/[(),']/g, ''),
+                        )}
                   </StyledText>
                 </div>
               </div>
@@ -389,19 +474,27 @@ export default function OrganizerView({ selectedTrip }) {
                     fontWeight={500}
                     fontSize="14px"
                   >
-                    {proposedDate?.attendee?.firstname}
+                    {proposedDate?.user?.firstname}{' '}
+                    {proposedDate?.user?.surname}
                   </StyledText>
                 </div>
                 <div>
-                  <div style={styles.flexRowCenter}>
+                  <div style={{ ...styles.flexRowCenter, flexWrap: 'nowrap' }}>
                     <img
                       src={require('../../../../Assets/Images/calendar.png')}
                       alt="loc"
                       style={{ width: 15, height: 15, marginRight: 5 }}
                     />
-                    <StyledText fontSize="14px" style={{ marginBottom: 0 }}>
-                      {formatDate(proposedDate?.selected_available_startdate)}
-                    </StyledText>
+                    <div>
+                      <StyledText fontSize="14px" style={{ marginBottom: 0 }}>
+                        Start:{' '}
+                        {formatDate(proposedDate?.selected_available_startdate)}
+                      </StyledText>
+                      <StyledText fontSize="14px" style={{ marginBottom: 0 }}>
+                        End:{' '}
+                        {formatDate(proposedDate?.selected_available_enddate)}
+                      </StyledText>
+                    </div>
                   </div>
                   {proposedDate.selected_date_reason && (
                     <div>
@@ -416,7 +509,7 @@ export default function OrganizerView({ selectedTrip }) {
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     {isEqual(
                       new Date(proposedDate.selected_available_startdate),
-                      new Date(selectedDate),
+                      new Date(selectedDate[0]),
                     ) ? (
                       <img
                         src={require('../../../../Assets/Icons/checked.png')}
@@ -427,12 +520,14 @@ export default function OrganizerView({ selectedTrip }) {
                       <Button
                         customStyles={{ marginTop: 10 }}
                         label={'Choose'}
-                        width={100}
-                        height={40}
+                        width={65}
+                        fontSize="14px"
+                        height={30}
                         onClick={() => {
-                          updateTripDate(
+                          updateTripDate([
                             proposedDate?.selected_available_startdate,
-                          );
+                            proposedDate?.selected_available_enddate,
+                          ]);
                         }}
                       />
                     )}
@@ -529,45 +624,65 @@ export default function OrganizerView({ selectedTrip }) {
         </div>
         {selectedTripAccomodation ? (
           <div
-            className="flexRowCenter"
-            style={{ justifyContent: 'space-between' }}
+            className="ripple-btn"
+            style={{ ...styles.accommodationCardView, width: 'fit-content' }}
+            onClick={() => {
+              const data = accomodationData(selectedTripAccomodation.name);
+              if (data) {
+                data.voters = selectedTripAccomodation.voters;
+                setPreviewAccommodation(data);
+                setPreviewModalVisible(true);
+              } else {
+                window.open(
+                  selectedTripAccomodation.link,
+                  '_blank',
+                  'rel=noopener noreferrer',
+                );
+              }
+            }}
           >
-            <div className="flexRowCenter">
-              <p style={{ marginRight: 20 }}>
-                {selectedTripAccomodation?.name}
-              </p>
-              <p style={{ color: 'blue' }}>
-                {' '}
-                <a
-                  href={selectedTripAccomodation?.link}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {selectedTripAccomodation?.link}
-                </a>
-              </p>
-            </div>
-            <div className="flexRowCenter" style={{ paddingTop: 10 }}>
+            <div style={styles.accommodationBox}>
               <img
-                src={require('../../../../Assets/Icons/checked.png')}
+                src={selectedTripAccomodation?.image?.[0]}
                 alt=""
-                style={{
-                  ...styles.dateCheck,
-                  marginBottom: 10,
-                  marginRight: 15,
-                }}
+                style={styles.accommodationImg}
               />
               <div
-                style={styles.voteBtn}
-                onClick={() => {
-                  setModalType('accommodationVotes');
-                  setModalVisible(true);
-                  setVoters(selectedTripAccomodation.voters);
-                  setModalAccommodationData(selectedTripAccomodation);
+                style={{
+                  paddingLeft: 10,
+                  paddingRight: 10,
+                  ...styles.flexRowCenter,
+                  justifyContent: 'space-between',
                 }}
               >
-                <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                {selectedTripAccomodation?.votes || 0}
+                <div>
+                  <StyledText fontWeight={600}>
+                    {selectedTripAccomodation?.name}
+                  </StyledText>
+                  <StyledText fontSize="14px">
+                    Votes: {selectedTripAccomodation?.votes || 0}
+                  </StyledText>
+                </div>
+                <div>
+                  <div
+                    style={{
+                      ...styles.flexRowCenter,
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <img
+                      src={require('../../../../Assets/Icons/rating.png')}
+                      alt=""
+                      style={{ width: 20, marginRight: 5 }}
+                    />
+                    <StyledText fontSize="14px">
+                      {selectedTripAccomodation?.rating}
+                    </StyledText>
+                  </div>
+                  <StyledText fontWeight={500} fontSize="14px">
+                    Ksh {selectedTripAccomodation?.price}
+                  </StyledText>
+                </div>
               </div>
             </div>
           </div>
@@ -580,33 +695,92 @@ export default function OrganizerView({ selectedTrip }) {
         <div>
           {topVotedAccommodation ? (
             <div
-              className="flexRowCenter"
-              style={{ justifyContent: 'space-between' }}
+              className="ripple-btn"
+              style={{ ...styles.accommodationCardView, width: 'fit-content' }}
             >
-              <div className="flexRowCenter">
-                <p style={{ marginRight: 20 }}>{topVotedAccommodation.name}</p>
-                <p style={{ color: 'blue' }}>
-                  {' '}
-                  <a
-                    href={topVotedAccommodation?.link}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {topVotedAccommodation?.link}
-                  </a>
-                </p>
-              </div>
-              <div
-                style={styles.voteBtn}
-                onClick={() => {
-                  setModalType('accommodationVotes');
-                  setModalVisible(true);
-                  setModalAccommodationData(topVotedAccommodation);
-                  setVoters(topVotedAccommodation.voters);
-                }}
-              >
-                <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                {topVotedAccommodation.votes}
+              <div style={styles.accommodationBox}>
+                <div
+                  style={styles.accommodationImg}
+                  onClick={() => {
+                    const data = accomodationData(topVotedAccommodation.name);
+                    if (data) {
+                      data.voters = topVotedAccommodation.voters;
+                      setPreviewAccommodation(data);
+                      setPreviewModalVisible(true);
+                    } else {
+                      window.open(
+                        topVotedAccommodation.link,
+                        '_blank',
+                        'rel=noopener noreferrer',
+                      );
+                    }
+                  }}
+                >
+                  <img
+                    src={
+                      topVotedAccommodation?.image ||
+                      require('../../../../Assets/Images/Diani_Beach.jpg')
+                    }
+                    alt=""
+                    style={{ ...styles.accommodationImg, height: '90%' }}
+                  />
+                </div>
+                <div
+                  style={{
+                    paddingLeft: 10,
+                    paddingRight: 10,
+                    ...styles.flexRowCenter,
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div>
+                    <StyledText fontWeight={600}>
+                      {topVotedAccommodation?.name}
+                    </StyledText>
+                    <StyledText fontSize="14px">
+                      Votes: {topVotedAccommodation?.votes || 0}
+                    </StyledText>
+                  </div>
+                  {topVotedAccommodation.rating && (
+                    <div>
+                      <div
+                        style={{
+                          ...styles.flexRowCenter,
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <img
+                          src={require('../../../../Assets/Icons/rating.png')}
+                          alt=""
+                          style={{ width: 20, marginRight: 5 }}
+                        />
+                        <StyledText fontSize="14px">
+                          {topVotedAccommodation?.rating}
+                        </StyledText>
+                      </div>
+                    </div>
+                  )}
+                  {selectedTrip?.selected_accomodation?.replace(
+                    /[(),']/g,
+                    '',
+                  ) !== topVotedAccommodation?.id ? (
+                    <Button
+                      label={'Select'}
+                      height={30}
+                      width={50}
+                      onClick={() =>
+                        organiserSelectAccomodation(topVotedAccommodation)
+                      }
+                      fontSize="13px"
+                    />
+                  ) : (
+                    <img
+                      src={require('../../../../Assets/Icons/checked.png')}
+                      alt=""
+                      style={{ ...styles.dateCheck, marginTop: 10 }}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           ) : (
@@ -618,7 +792,7 @@ export default function OrganizerView({ selectedTrip }) {
           style={{ justifyContent: 'space-between' }}
         >
           <StyledText fontSize="18px" fontWeight={600}>
-            Available accommodations
+            Accommodations
           </StyledText>
           <Button
             label={'Add accommodation link'}
@@ -630,43 +804,127 @@ export default function OrganizerView({ selectedTrip }) {
             }}
           />
         </div>
-        <div>
-          {accommodations.length ? (
-            accommodations.map((accommodation, index) => (
-              <div
-                key={index}
-                className="flexRowCenter"
-                style={{ justifyContent: 'space-between' }}
-              >
-                <div className="flexRowCenter">
-                  <p style={{ marginRight: 20 }}>{accommodation.name}</p>
-                  <p style={{ color: 'blue' }}>
-                    {' '}
-                    <a
-                      href={accommodation?.link}
-                      target="_blank"
-                      rel="noreferrer"
+        <div style={styles.acommodationView}>
+          {loading ? (
+            <div className="flexRowCenter">
+              <CirclesWithBar
+                height="100"
+                width="100"
+                color="#4fa94d"
+                wrapperClass=""
+                visible={true}
+                outerCircleColor=""
+                innerCircleColor=""
+                barColor=""
+                ariaLabel="circles-with-bar-loading"
+              />
+              <StyledText customStyle={{ paddingLeft: 20 }}>
+                Hang tight....
+              </StyledText>
+            </div>
+          ) : accommodations.length ? (
+            accommodations.map((accommodation, index) => {
+              const data = accomodationData(accommodation.name);
+              console.log('data===>', data);
+              return (
+                <div
+                  className="ripple-btn"
+                  style={styles.accommodationCardView}
+                >
+                  <div style={styles.accommodationBox}>
+                    <img
+                      onClick={() => {
+                        if (data) {
+                          data.voters = accommodation.voters;
+                          setPreviewAccommodation(data);
+                          setPreviewModalVisible(true);
+                        } else {
+                          window.open(
+                            accommodation?.link,
+                            '_blank',
+                            'rel=noopener noreferrer',
+                          );
+                        }
+                      }}
+                      src={
+                        data?.image ||
+                        require('../../../../Assets/Images/Diani_Beach.jpg')
+                      }
+                      alt=""
+                      style={styles.accommodationImg}
+                    />
+                    <div
+                      style={{
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                        ...styles.flexRowCenter,
+                        justifyContent: 'space-between',
+                      }}
                     >
-                      {accommodation?.link}
-                    </a>
-                  </p>
-                </div>
-                <div>
-                  <div
-                    style={styles.voteBtn}
-                    onClick={() => {
-                      setModalType('accommodationVotes');
-                      setModalVisible(true);
-                      setModalAccommodationData(accommodation);
-                      setVoters(accommodation.voters);
-                    }}
-                  >
-                    <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                    {accommodation.votes || 0}
+                      <div>
+                        <StyledText fontWeight={600}>
+                          {accommodation?.name}
+                        </StyledText>
+                      </div>
+                      <div
+                        className="flexRowCenter"
+                        style={{
+                          justifyContent: 'space-between',
+                          width: '100%',
+                        }}
+                      >
+                        <StyledText fontSize="14px">
+                          {/* Votes: {getAccomodationVotes(accommodation?.id)} */}
+                          Votes: {accommodation.votes}
+                        </StyledText>
+                        {data?.rating && (
+                          <div
+                            style={{
+                              ...styles.flexRowCenter,
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <img
+                              src={require('../../../../Assets/Icons/rating.png')}
+                              alt=""
+                              style={{ width: 20, marginRight: 5 }}
+                            />
+                            <StyledText fontSize="14px">
+                              {data?.rating}
+                            </StyledText>
+                          </div>
+                        )}
+                        {/* {data?.price && (
+                          <StyledText fontWeight={500} fontSize="14px">
+                            Ksh {data?.price}
+                          </StyledText>
+                        )} */}
+                        {selectedTrip?.selected_accomodation?.replace(
+                          /[(),']/g,
+                          '',
+                        ) !== accommodation?.id ? (
+                          <Button
+                            label={'Select'}
+                            height={30}
+                            width={50}
+                            onClick={() =>
+                              organiserSelectAccomodation(accommodation)
+                            }
+                            fontSize="13px"
+                          />
+                        ) : (
+                          <img
+                            src={require('../../../../Assets/Icons/checked.png')}
+                            alt=""
+                            style={{ ...styles.dateCheck, marginTop: 10 }}
+                          />
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <StyledText>No Accommodations added yet</StyledText>
           )}
@@ -840,6 +1098,30 @@ export default function OrganizerView({ selectedTrip }) {
                   </div>
                 </>
               )}
+              {/* {modalType === 'accommodationVote' && (
+                <div>
+                  <div style={styles.input}>
+                    <StyledText fontSize={16}>
+                      State a reason why you preffer this accommodation to let
+                      other invitees know
+                    </StyledText>
+                    <Input
+                      width={'100%'}
+                      placeholder={'e.g. It is at the beach!'}
+                      onChange={(e) => setAccommodationReason(e.target.value)}
+                    />
+                  </div>
+                  <div style={{ marginTop: 30 }}>
+                    <Button
+                      label={'Submit'}
+                      width={'100%'}
+                      onClick={() => {
+                        voteAccommodation(modalData);
+                      }}
+                    />
+                  </div>
+                </div>
+              )} */}
               <div className="btn">
                 {(modalType === 'activity' ||
                   modalType === 'accommodation') && (
@@ -886,7 +1168,7 @@ const styles = {
   },
   accommodationBox: {
     width: 270,
-    height: 150,
+    height: 180,
     backgroundColor: 'white',
     borderRadius: 10,
   },

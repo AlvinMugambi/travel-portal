@@ -39,23 +39,25 @@ export default function Register() {
       return;
     }
     setLoading(true);
-    authService.register(email, firstName, surname, '', password).then((res) => {
-      setLoading(false);
-      if (res.status === 201) {
-        setJwt_token(res.token);
-        const decoded = jwt_decode(res.token);
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('userData', JSON.stringify(decoded));
-        setUserData(decoded);
-        navigate('/Dashboard');
-      } else {
-        console.log('error===>', res.error);
-        setError(
-          res?.error?.response?.data?.error ||
-            'Kindly check the form and try again',
-        );
-      }
-    });
+    authService
+      .register(email, firstName, surname, '', password)
+      .then((res) => {
+        setLoading(false);
+        if (res.status === 201) {
+          setJwt_token(res.token);
+          const decoded = jwt_decode(res.token);
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('userData', JSON.stringify(decoded));
+          setUserData(decoded);
+          navigate('/Dashboard');
+        } else {
+          console.log('error===>', res.error);
+          setError(
+            res?.error?.response?.data?.error ||
+              'Kindly check the form and try again',
+          );
+        }
+      });
   };
 
   return (
@@ -88,7 +90,13 @@ export default function Register() {
               </StyledText>
             )}
           </div>
-          <div style={{...styles.input, ...styles.flexCenter, justifyContent: 'space-between'}}>
+          <div
+            style={{
+              ...styles.input,
+              ...styles.flexCenter,
+              justifyContent: 'space-between',
+            }}
+          >
             <div>
               <StyledText fontSize={16}>First name</StyledText>
               <Input
@@ -146,7 +154,12 @@ export default function Register() {
             />
           </div>
         </FormView>
-        <StyledText>Already have an account? <span onClick={() => navigate('/Login')} style={{color: 'blue'}}>Log in</span></StyledText>
+        <StyledText>
+          Already have an account?{' '}
+          <span onClick={() => navigate('/Login')} style={{ color: 'blue' }}>
+            Log in
+          </span>
+        </StyledText>
       </div>
     </div>
   );
@@ -201,5 +214,4 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  
 };

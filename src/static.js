@@ -1,3 +1,5 @@
+import { ApifyClient } from 'apify-client';
+
 export const accommodations = [
   {
     id: '1',
@@ -420,3 +422,27 @@ export const accommodations = [
     ],
   },
 ];
+
+export const client = new ApifyClient({
+  token: 'apify_api_ubP7AubNkm5mrQDBsthlGgXWxATp1b1F7RdD',
+});
+
+export const scrapperStaticInput = {
+  checkIn: '',
+  currency: 'USD',
+  language: 'en-gb',
+  maxItems: 10,
+  minMaxPrice: '0-999999',
+  starsCountFilter: 'any',
+  startUrls: [
+    {
+      url: '',
+    },
+  ],
+  propertyType: 'none',
+  sortBy: 'distance_from_search',
+  checkOut: '',
+  // "rooms": 1,
+  // "adults": 2,
+  // "children": 0
+};

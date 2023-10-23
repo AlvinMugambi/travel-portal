@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format } from 'date-fns';
 
 export const capitalizeFLetter = (str) => {
   if (str) {
@@ -8,14 +8,13 @@ export const capitalizeFLetter = (str) => {
   }
 };
 
-
 export const formatDate = (date) => {
-  let _date
+  let _date;
   try {
-    _date = format(new Date(date), 'PPP')
+    _date = format(new Date(date), 'PPP');
   } catch (error) {
     console.log('formatDate error==>', error);
-    _date = date
+    _date = date;
   }
-  return _date
-}
+  return _date;
+};

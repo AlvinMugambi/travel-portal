@@ -5,6 +5,7 @@ import AccommodationModal from './AccommodationModal';
 import OrganizerView from './OrganizerView';
 import InviteeView from './InviteeView';
 import { tripService } from '../../../../Services/tripService';
+import { formatDate } from '../../../../Utils/helpers';
 
 export default function Trip({ selectedTrip, setTripUpdated }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -39,7 +40,7 @@ export default function Trip({ selectedTrip, setTripUpdated }) {
     );
     return acc ? acc.dcount : 0;
   };
-
+  console.log('selectedTrip====>', selectedTrip);
   const [prefferedDate, setPrefferedDate] = useState(new Date());
 
   return (
@@ -74,7 +75,9 @@ export default function Trip({ selectedTrip, setTripUpdated }) {
                 style={{ width: 15, height: 15, marginRight: 5 }}
               />
               <StyledText fontSize="15px">
-                {selectedTrip?.start_date}
+                {formatDate(selectedTrip?.start_date)}{' '}
+                {selectedTrip?.end_date &&
+                  ` - ${formatDate(selectedTrip?.end_date)}`}
               </StyledText>
             </div>
           </div>
@@ -85,7 +88,7 @@ export default function Trip({ selectedTrip, setTripUpdated }) {
             <StyledText fontSize="18px" fontWeight={600}>
               Notes/Requirements
             </StyledText>
-            <StyledText>{selectedTrip.requirements}</StyledText>
+            <StyledText>{selectedTrip.requirements || '---'}</StyledText>
           </div>
         </div>
         <div className="section2">
@@ -95,9 +98,10 @@ export default function Trip({ selectedTrip, setTripUpdated }) {
               selectedTrip={selectedTrip}
               selectedTripDate={selectedTrip?.selected_date}
               setPreviewAccommodation={setPreviewAccommodation}
-              setModalVisible={setModalVisible}
+              setPreviewModalVisible={setModalVisible}
               getAccomodationVotes={getAccomodationVotes}
               accomodationVotes={accomodationVotes}
+              setTripUpdated={setTripUpdated}
             />
           ) : (
             <InviteeView
@@ -106,10 +110,10 @@ export default function Trip({ selectedTrip, setTripUpdated }) {
               setPrefferedDate={setPrefferedDate}
               prefferedDate={prefferedDate}
               setPreviewAccommodation={setPreviewAccommodation}
-              setModalVisible={setModalVisible}
               selectedTrip={selectedTrip}
               getAccomodationVotes={getAccomodationVotes}
               setTripUpdated={setTripUpdated}
+              setPreviewModalVisible={setModalVisible}
             />
           )}
         </div>

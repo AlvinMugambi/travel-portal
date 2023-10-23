@@ -104,7 +104,12 @@ export default function Login() {
             />
           </div>
         </FormView>
-        <StyledText>Don't have an account? <span onClick={() => navigate('/Register')} style={{color: 'blue'}}>Register here</span></StyledText>
+        <StyledText>
+          Don't have an account?{' '}
+          <span onClick={() => navigate('/Register')} style={{ color: 'blue' }}>
+            Register here
+          </span>
+        </StyledText>
       </div>
     </div>
   );

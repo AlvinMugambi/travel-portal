@@ -54,13 +54,13 @@ export default function Dashboard() {
           <div>
             <div className="flexCenter">
               <img
-                src={require('../../Assets/Images/travel-tech-logo.png')}
+                src={require('../../Assets/Images/Logo/logo.png')}
                 alt=""
                 className="img"
               />
-              <StyledText fontSize="20px" fontWeight={700}>
-                Travel Tech Africa
-              </StyledText>
+              {/* <StyledText fontSize="20px" fontWeight={700}>
+                TRIPSYNC
+              </StyledText> */}
               {drawerOpen && (
                 <div style={{ paddingLeft: 20 }}>
                   <StyledText

@@ -6,6 +6,7 @@ export default function Button({
   disabled,
   customStyles = {},
   onClick = () => {},
+  fontSize = '16px',
   width = 100,
   height = 57,
   backgroundColor = '#1434CB',
@@ -16,7 +17,9 @@ export default function Button({
       style={{ ...styles.btn, ...customStyles, backgroundColor, width, height }}
       onClick={() => !disabled && onClick()}
     >
-      <StyledText color={labelColor}>{label}</StyledText>
+      <StyledText fontSize={fontSize} color={labelColor}>
+        {label}
+      </StyledText>
     </div>
   );
 }

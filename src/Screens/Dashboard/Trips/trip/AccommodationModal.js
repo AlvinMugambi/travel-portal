@@ -18,10 +18,10 @@ export default function AccommodationModal({
 }) {
   const [reason, setReason] = useState('');
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
-  const votedUsers = useMemo(
-    () => tripRegister.filter((x) => !!x.selected_accomodation_id),
-    [tripRegister],
-  );
+  // const voters = useMemo(
+  //   () => tripRegister.filter((x) => !!x.selected_accomodation_id),
+  //   [tripRegister],
+  // );
 
   const jwtToken = localStorage.getItem('token');
 
@@ -30,7 +30,7 @@ export default function AccommodationModal({
     tripService
       .inviteeUpdatePreferredAccomodation(
         tripRegister?.[0]?.trip?.id,
-        accommodation.id,
+        accommodation?.id,
         reason,
         jwtToken,
       )
@@ -44,7 +44,7 @@ export default function AccommodationModal({
     tripService
       .updateTripAccomodation(
         tripRegister?.[0]?.trip?.id,
-        accommodation.id,
+        accommodation?.id,
         jwtToken,
       )
       .then((res) => {
@@ -58,7 +58,7 @@ export default function AccommodationModal({
       isVisible={modalVisible}
       onClose={() => setModalVisible(false)}
       width={'90vw'}
-      height={'93vh'}
+      maxHeight={'93vh'}
     >
       <div className="pad20">
         <div className="modalheader">
@@ -72,7 +72,7 @@ export default function AccommodationModal({
               style={{ width: 15, height: 15, marginRight: 5, marginLeft: 20 }}
             />
             <StyledText fontSize="15px">
-              {accommodation?.address.street}
+              {accommodation?.address?.full}
             </StyledText>
             <img
               src={require('../../../../Assets/Icons/rating.png')}
@@ -99,7 +99,7 @@ export default function AccommodationModal({
               showStatus={false}
               showThumbs={false}
             >
-              {accommodation?.image.map((image) => (
+              {accommodation?.images?.map((image) => (
                 <div>
                   <img className="carouselImg" src={image} alt="" />
                 </div>
@@ -111,141 +111,151 @@ export default function AccommodationModal({
               Description
             </StyledText>
             <StyledText fontSize="14px">
-              Set in Diani Beach, 200 metres from Galu Beach, Boxo Diani offers
-              accommodation with an outdoor swimming pool, free private parking,
-              a shared lounge and a restaurant. Offering a bar, the property is
-              located within 2.5 km of Colobus Conservation. The accommodation
-              features room service, a tour desk and currency exchange for
-              guests.
+              {accommodation?.description}
             </StyledText>
-            <StyledText fontSize="14px">
-              With a private bathroom fitted with a shower and free toiletries,
-              rooms at the hotel also feature free WiFi, while certain rooms
-              also offer pool view. All guest rooms at Boxo Diani feature air
-              conditioning and a desk.
+            <StyledText fontSize="20px" fontWeight={600}>
+              Category scores
             </StyledText>
-            <StyledText fontSize="14px">
-              A continental, vegetarian or vegan breakfast is available every
-              morning at the property.
-            </StyledText>
-            <StyledText fontSize="14px">
-              The accommodation offers a sun terrace.
-            </StyledText>
-            <StyledText fontSize="14px">
-              Kaya Kinondo Sacred Forest is 3.7 km from Boxo Diani, while
-              Leisure Lodge Golf Club is 10 km from the property. The nearest
-              airport is Ukunda Airport, 8 km from the hotel.
-            </StyledText>
-            {!!votedUsers.length ? (
-              <>
-                <StyledText
-                  fontSize="20px"
-                  fontWeight={600}
-                  customStyle={{ marginTop: 30 }}
-                >
-                  Voted by
-                </StyledText>
+            <div className="flex" style={{ flexWrap: 'wrap' }}>
+              {accommodation?.categoryReviews?.map((review) => (
                 <div
+                  className="flex"
                   style={{
-                    ...styles.flexRowCenter,
-                    ...styles.acommodationView,
+                    borderRadius: 10,
+                    border: '1px solid grey',
+                    padding: 5,
+                    marginRight: 10,
+                    marginBottom: 10,
                   }}
                 >
-                  {votedUsers.map((register) => (
-                    <div className="accommodationCardView">
+                  <StyledText
+                    fontWeight={500}
+                    fontSize="14px"
+                    customStyle={{ marginRight: 5 }}
+                  >
+                    {review?.title}:
+                  </StyledText>
+                  <StyledText fontSize="14px">{review?.score}</StyledText>
+                </div>
+              ))}
+            </div>
+            <StyledText fontSize="20px" fontWeight={600}>
+              Time
+            </StyledText>
+            <StyledText fontSize="14px">
+              Check In {accommodation?.checkIn}
+            </StyledText>
+            <StyledText fontSize="14px">
+              Check Out {accommodation?.checkOut}
+            </StyledText>
+            <StyledText
+              fontSize="20px"
+              fontWeight={600}
+              customStyle={{ marginTop: 30 }}
+            >
+              Voted by
+            </StyledText>
+            {!!accommodation?.voters?.length ? (
+              <div
+                style={{
+                  ...styles.flexRowCenter,
+                  ...styles.acommodationView,
+                }}
+              >
+                {accommodation?.voters?.map((register) => (
+                  <div className="accommodationCardView">
+                    <div
+                      style={{
+                        ...styles.flexRowCenter,
+                        border: '1px solid grey',
+                        padding: 10,
+                        borderRadius: 10,
+                      }}
+                    >
                       <div
                         style={{
-                          ...styles.flexRowCenter,
-                          border: '1px solid grey',
-                          padding: 10,
-                          borderRadius: 10,
+                          ...styles.attendee,
+                          borderRight: '1px solid grey',
+                          paddingRight: 15,
                         }}
                       >
                         <div
-                          style={{
-                            ...styles.attendee,
-                            borderRight: '1px solid grey',
-                            paddingRight: 15,
-                          }}
+                          style={{ ...styles.avatar, width: 40, height: 40 }}
                         >
-                          <div
-                            style={{ ...styles.avatar, width: 40, height: 40 }}
-                          >
-                            {register?.user?.[0]?.toUpperCase()}
-                          </div>
-                          <StyledText fontSize="14px">
-                            {register?.user}
-                          </StyledText>
+                          {register?.user?.[0]?.toUpperCase()}
                         </div>
                         <StyledText fontSize="14px">
-                          {register?.selected_accomodation_reason}
+                          {register?.user}
                         </StyledText>
                       </div>
+                      <StyledText fontSize="14px">
+                        {register?.selected_accomodation_reason}
+                      </StyledText>
                     </div>
-                  ))}
-                </div>
-              </>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <StyledText
-                fontSize="18px"
-                fontWeight={600}
-                customStyle={{ marginTop: 50 }}
-              >
+              <StyledText customStyle={{ marginTop: 50 }}>
                 No votes on this accomodation yet
               </StyledText>
             )}
           </div>
         </div>
-        <div style={{ marginTop: 20 }}>
-          <StyledText fontSize="20px" fontWeight={600}>
-            Available rooms
-          </StyledText>
-          <div className="acommodationView">
-            {accommodation?.rooms?.map((room) => (
-              <div
-                className="ripple-btn accommodationCardView"
-                onClick={() => setModalVisible(true)}
-              >
-                <div className="accommodationBox">
-                  <div
-                    style={{
-                      paddingLeft: 10,
-                      paddingRight: 10,
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div>
-                      <StyledText fontWeight={600}>{room.roomType}</StyledText>
-                      <StyledText color="green" fontSize="14px">
-                        {room.available ? 'Available' : 'Not available'}
-                      </StyledText>
-                    </div>
-                    <div>
+        {!!accommodation?.rooms?.length && (
+          <div style={{ marginTop: 20 }}>
+            <StyledText fontSize="20px" fontWeight={600}>
+              Available rooms
+            </StyledText>
+            <div className="acommodationView">
+              {accommodation?.rooms?.map((room) => (
+                <div
+                  className="ripple-btn accommodationCardView"
+                  onClick={() => setModalVisible(true)}
+                >
+                  <div className="accommodationBox">
+                    <div
+                      style={{
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <div>
-                        <StyledText fontSize="14px">
-                          Capacity: {room.persons} persons
+                        <StyledText fontWeight={600}>
+                          {room.roomType}
+                        </StyledText>
+                        <StyledText color="green" fontSize="14px">
+                          {room.available ? 'Available' : 'Not available'}
                         </StyledText>
                       </div>
-                      <StyledText fontWeight={500} fontSize="14px">
-                        Price: Ksh 1000
-                      </StyledText>
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                      {room.features.map(
-                        (feature) =>
-                          feature && (
-                            <p style={{ fontSize: '12px', marginRight: 10 }}>
-                              &#10003; {feature}
-                            </p>
-                          ),
-                      )}
+                      <div>
+                        <div>
+                          <StyledText fontSize="14px">
+                            Capacity: {room.persons} persons
+                          </StyledText>
+                        </div>
+                        <StyledText fontWeight={500} fontSize="14px">
+                          Price: Ksh 1000
+                        </StyledText>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                        {room.features.map(
+                          (feature) =>
+                            feature && (
+                              <p style={{ fontSize: '12px', marginRight: 10 }}>
+                                &#10003; {feature}
+                              </p>
+                            ),
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         {!tripRegister?.[0]?.trip?.selected_accomodation &&
           !isTripOrganiser && (
             <div className="voteReasonLayout">

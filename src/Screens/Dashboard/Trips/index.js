@@ -127,13 +127,13 @@ export default function Trips({ setDrawerOpen }) {
     }
     let _startDate;
     let _endDate;
-      if (Array.isArray(selectedTripDate)) {
-        _startDate = format(new Date(selectedTripDate[0]), 'PPP');
-        _endDate = format(new Date(selectedTripDate[1]), 'PPP');
-      } else {
-        _startDate = format(new Date(selectedTripDate), 'PPP');
-        _endDate = format(new Date(selectedTripDate), 'PPP');
-      }
+    if (Array.isArray(selectedTripDate)) {
+      _startDate = new Date(selectedTripDate[0]);
+      _endDate = new Date(selectedTripDate[1]);
+    } else {
+      _startDate = new Date(selectedTripDate);
+      _endDate = new Date(selectedTripDate);
+    }
 
     // if (fixedDate) {
     //   _startDate = format(selectedTripDate, 'PPP');
@@ -546,27 +546,13 @@ export default function Trips({ setDrawerOpen }) {
                     </p>
                   </div>
                   <div>
-                  {fixedDate && 
-                    <div>
-                      <StyledText fontSize={16}>How long is the overall trip?</StyledText>
-                      <Input
-                        width={'100%'}
-                        placeholder={'E.g. 5 days'}
-                        onChange={(e) => setDuration(e.target.value)}
-                      />
-                  </div>}
                     <StyledText fontSize={16}>
-                      Select date {' '}
-                      {!fixedDate && (
-                        <span>
-                          range
-                        </span>
-                      )}
+                      Select date {!fixedDate && <span>range</span>}
                     </StyledText>
                     <Calendar
                       onChange={setSelectedTripDate}
                       value={selectedTripDate}
-                      selectRange={!fixedDate}
+                      selectRange
                     />
                   </div>
                 </FormView>
