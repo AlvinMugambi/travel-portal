@@ -1,16 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import StyledText from '../../../../Components/Common/StyledText';
 import Button from '../../../../Components/Common/Button';
-// import Calendar from 'react-calendar';
-import { format } from 'date-fns';
 import { tripService } from '../../../../Services/tripService';
 import Input from '../../../../Components/Common/Input';
-import { useMediaQuery } from 'react-responsive';
-import Modal from '../../../../Components/Common/Modal';
-import FormView from '../../../../Components/Common/FormView';
-import { DatePicker, Calendar } from 'react-multi-date-picker';
-import { scrapperStaticInput, client } from '../../../../static';
+import { Calendar } from 'react-multi-date-picker';
 import { formatDate } from '../../../../Utils/helpers';
+import { CirclesWithBar } from 'react-loader-spinner';
 
 export default function InviteeView({
   selectedTrip,
@@ -19,92 +14,40 @@ export default function InviteeView({
   setTripUpdated,
   setPreviewAccommodation,
   setPreviewModalVisible,
+  accommodationsLoading,
+  attendees,
+  accommodations,
+  activities,
+  topVotedActivity,
+  topVotedAccommodation,
+  accommodationData,
+  setVoters,
+  setModalType,
+  message,
+  voteActivity,
+  setModalVisible,
+  setModalData,
+  modalData,
+  nonUser,
+  setVoterName,
+  voterName,
 }) {
   const jwtToken = localStorage.getItem('token');
   const userData = JSON.parse(localStorage.getItem('userData'));
-  const [attendees, setAttendees] = useState([]);
   const [prefferedDate, setPrefferedDate] = useState([new Date()]);
   const [isSuggestingDate, setIsSuggestingDate] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
   const [reason, setReason] = useState('');
-  const [accommodationReason, setAccommodationReason] = useState('');
   const [dateMessage, setDateMessage] = useState('');
-  const [modalType, setModalType] = useState('activities');
-  const [message, setMessage] = useState({ label: '', type: '', for: '' });
-  const [hasVoted, setHasVoted] = useState(false);
-  const [activities, setActivities] = useState([]);
-  const [accommodations, setAccommodations] = useState([]);
-  const [voters, setVoters] = useState([]);
-  const [modalData, setModalData] = useState();
-  const [scrappedItems, setScrappedItems] = useState({});
-
-  console.log('selectedTrip====>', selectedTrip);
-  useEffect(() => {
-    const fetchData = async () => {
-      const scrapedData = {};
-
-      for (const acc of accommodations) {
-        const { name, link } = acc;
-        const { defaultDatasetId } = await client
-          .actor('QGcJvQyG9NqMKTYPH')
-          .call({
-            ...scrapperStaticInput,
-            search: name,
-            startUrls: [{ url: link }],
-          });
-        try {
-          const res = await client.dataset(defaultDatasetId).listItems();
-          scrapedData[name] = res.items;
-        } catch (error) {
-          console.error(`Error fetching data for ${name}:`, error);
-        }
-      }
-
-      setScrappedItems((prevItems) => ({
-        ...prevItems,
-        ...scrapedData,
-      }));
-    };
-
-    fetchData();
-  }, [accommodations]);
-
-  const accomodationData = useCallback(
-    (accommodationName) => {
-      return scrappedItems?.[accommodationName]?.find(
-        (item) => item.name === accommodationName,
-      );
-    },
-    [scrappedItems],
-  );
-
-  useEffect(() => {
-    tripService.getTripActivities(selectedTrip?.id, jwtToken).then((res) => {
-      setActivities(res.data || []);
-    });
-    tripService
-      .getTripAccommodations(selectedTrip?.id, jwtToken)
-      .then((res) => {
-        setAccommodations(res.data || []);
-      });
-  }, [hasVoted, selectedTrip, jwtToken]);
-
-  useEffect(() => {
-    tripService.getTripAttendees(selectedTrip.id, jwtToken).then((res) => {
-      setAttendees(res.data || []);
-    });
-  }, [inviteStatus, jwtToken, selectedTrip.id]);
 
   const acceptInvite = () => {
-    tripService.acceptInvite(selectedTrip.id, jwtToken).then((res) => {
+    tripService.acceptInvite(selectedTrip?.id, jwtToken).then((res) => {
       console.log('acceptInvite res===>', res);
       setInviteStatus('accepted');
     });
   };
-  console.log('modalData===>', modalData);
+
   const denyInvite = () => {
-    tripService.denyInvite(selectedTrip.id, jwtToken).then((res) => {
+    tripService.denyInvite(selectedTrip?.id, jwtToken).then((res) => {
       console.log('denyInvite res===>', res);
       setInviteStatus('denied');
     });
@@ -126,11 +69,12 @@ export default function InviteeView({
 
       tripService
         .inviteeUpdatePreferredDate(
-          selectedTrip.id,
+          selectedTrip?.id,
           startDate,
           endDate,
           reason,
           jwtToken,
+          voterName,
         )
         .then((res) => {
           console.log('res===>', res);
@@ -143,7 +87,7 @@ export default function InviteeView({
   };
 
   const completeInvite = () => {
-    tripService.completeInvite(selectedTrip.id, jwtToken).then((res) => {
+    tripService.completeInvite(selectedTrip?.id, jwtToken).then((res) => {
       console.log('completeInvite res===>', res);
       setInviteStatus('done');
       setTripUpdated((prev) => !prev);
@@ -154,111 +98,6 @@ export default function InviteeView({
     () => attendees.filter((a) => a.invite_accepted),
     [attendees],
   );
-
-  const voteActivity = (activity) => {
-    tripService
-      .voteForActivity(selectedTrip?.id, activity?.id, jwtToken)
-      .then((res) => {
-        if (res.status === 200) {
-          setHasVoted((prev) => !prev);
-          setMessage({
-            label: 'Voted added',
-            type: 'success',
-            for: 'activities',
-          });
-          setTimeout(() => {
-            setMessage({ label: '', type: '', for: '' });
-          }, 2000);
-        } else {
-          setMessage({
-            label:
-              res?.error?.response?.data?.error ||
-              'Oops. Failed to complete vote. Kindly try again',
-            type: 'error',
-            for: 'activities',
-          });
-        }
-        setTimeout(() => {
-          setMessage({ label: '', type: '', for: '' });
-        }, 2000);
-        console.log('res====>', res);
-      });
-  };
-  console.log('prefferredDate====>', prefferedDate);
-
-  const voteAccommodation = (accommodation) => {
-    tripService
-      .voteForAccomodation(
-        selectedTrip?.id,
-        accommodation.id,
-        accommodationReason,
-        jwtToken,
-      )
-      .then((res) => {
-        setModalVisible(false);
-        if (res.status === 200) {
-          setHasVoted((prev) => !prev);
-          setMessage({
-            label: 'Voted added',
-            type: 'success',
-            for: 'accommodation',
-          });
-          setTimeout(() => {
-            setMessage({ label: '', type: '', for: '' });
-          }, 2000);
-        } else {
-          setMessage({
-            label:
-              res?.error?.response?.data?.error ||
-              'Oops. Failed to complete vote. Kindly try again',
-            type: 'error',
-            for: 'accommodation',
-          });
-        }
-        setTimeout(() => {
-          setMessage({ label: '', type: '', for: '' });
-        }, 2000);
-        console.log('res====>', res);
-      });
-  };
-
-  const topVotedAccommodation = useMemo(() => {
-    const filteredObjects = accommodations.filter((obj) => obj.votes > 0);
-    if (filteredObjects.length === 0) {
-      return null;
-    }
-    const maxVotesObject = filteredObjects.reduce((maxObj, currentObj) => {
-      return currentObj.votes > maxObj.votes ? currentObj : maxObj;
-    });
-
-    const data = accomodationData(maxVotesObject?.name);
-    if (data) {
-      return { ...maxVotesObject, ...data };
-    }
-    return maxVotesObject;
-  }, [accommodations]);
-
-  const topVotedActivity = useMemo(() => {
-    const filteredObjects = activities.filter((obj) => obj.votes > 0);
-    if (filteredObjects.length === 0) {
-      return null;
-    }
-    const maxVotesObject = filteredObjects.reduce((maxObj, currentObj) => {
-      return currentObj.votes > maxObj.votes ? currentObj : maxObj;
-    });
-
-    return maxVotesObject;
-  }, [activities]);
-
-  const selectedTripAccomodation = useMemo(
-    () =>
-      accommodations.find(
-        (acc) => acc.id == selectedTrip?.selected_accomodation?.[1],
-      ),
-    [selectedTrip, accommodations],
-  );
-
-  console.log('preferred date===>', prefferedDate);
 
   return (
     <>
@@ -285,21 +124,36 @@ export default function InviteeView({
           )}
         </div>
       </div>
+      <div style={styles.divider} />
       {inviteStatus === 'pending' && (
         <div>
+          {nonUser && (
+            <div style={{ marginBottom: 30 }}>
+              <StyledText fontSize={16}>
+                Enter your name to accept the invite
+              </StyledText>
+              <Input
+                width={'100%'}
+                placeholder={'What is your name?'}
+                backgroundColor="#F6F6F6"
+                onChange={(e) => setVoterName(e.target.value)}
+              />
+            </div>
+          )}
           <StyledText fontSize="18px" fontWeight={600}>
             Accept/Deny invite
           </StyledText>
           <StyledText>
             You can choose to accept or deny this invite. When accepting, you
-            will fill be allowed to vote for your preferred dates and the
-            accommodation with regards to where you are going to stay
+            will be able to vote for your preferred dates and the accommodation
+            with regards to your availability and preference
           </StyledText>
           <div style={styles.btn}>
             <Button
               label={'Accept'}
               width={100}
               height={30}
+              disabled={!voterName}
               onClick={() => {
                 acceptInvite();
               }}
@@ -326,7 +180,11 @@ export default function InviteeView({
           >
             Invite accepted
           </StyledText>
-          {selectedTrip.date_is_locked ? (
+          <div style={styles.divider} />
+          <StyledText fontSize="20px" fontWeight={700}>
+            Trip Date
+          </StyledText>
+          {selectedTrip?.date_is_locked ? (
             <div style={{ marginTop: 20, marginBottom: 20 }}>
               <StyledText>Date is fixed on:</StyledText>
               <StyledText>
@@ -385,6 +243,7 @@ export default function InviteeView({
                     height={50}
                     width={'100%'}
                     customStyles={{ borderRadius: 10, marginTop: 10 }}
+                    backgroundColor={'#F6F6F6'}
                     placeholder={'State a reason why you prefer this date'}
                     onChange={(e) => setReason(e.target.value)}
                   />
@@ -404,152 +263,126 @@ export default function InviteeView({
               )}
             </>
           )}
-          <StyledText
-            fontSize="25px"
-            fontWeight={600}
-            customStyle={{ marginTop: 20 }}
-          >
-            Activities
-          </StyledText>
-          <StyledText fontSize="18px" fontWeight={600}>
-            Top voted activity
-          </StyledText>
-          <div style={{ marginBottom: 20 }}>
-            {topVotedActivity ? (
-              <div
-                className="flexRowCenter"
-                style={{ justifyContent: 'space-between' }}
-              >
-                <div className="flexRowCenter">
-                  <p style={{ marginRight: 20 }}>{topVotedActivity.activity}</p>
-                </div>
-                <div
-                  style={styles.voteBtn}
-                  onClick={() => {
-                    setModalType('activityVotes');
-                    setModalVisible(true);
-                    setModalData(topVotedActivity);
-                    setVoters(topVotedActivity.voters);
-                  }}
-                >
-                  <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                  {topVotedActivity.votes}
-                </div>
-              </div>
-            ) : (
-              <StyledText>No votes yet</StyledText>
-            )}
-          </div>
           {!!activities.length && (
-            <StyledText
-              fontWeight={600}
-              customStyle={{ marginTop: 20, marginBottom: 10 }}
-            >
-              Please select your top two preferred activities
-            </StyledText>
-          )}
-          {message.label && message.for === 'activities' && (
-            <StyledText
-              fontSize="16px"
-              fontWeight={600}
-              color={message.type === 'error' ? 'red' : 'green'}
-              customStyle={{ marginTop: 10, marginBottom: 10 }}
-            >
-              {message.label}
-            </StyledText>
-          )}
-
-          {activities.map((activity, index) => (
-            <div
-              key={index}
-              className="flexRowCenter"
-              style={{ justifyContent: 'space-between' }}
-            >
-              <p>{activity.activity}</p>
-              <div className="flexRowCenter">
-                <div
-                  style={{ ...styles.voteBtn, marginRight: 15 }}
-                  onClick={() => {
-                    setModalType('activities');
-                    setModalVisible(true);
-                    setModalData(activity);
-                    setVoters(activity.voters);
-                  }}
-                >
-                  <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                  {activity.votes || 0}
-                </div>
-                <div
-                  style={{
-                    ...styles.voteBtn,
-                    backgroundColor: 'blue',
-                    color: 'white',
-                    paddingRight: 10,
-                    paddingLeft: 10,
-                  }}
-                  onClick={() => {
-                    voteActivity(activity);
-                  }}
-                >
-                  Vote
-                </div>
+            <>
+              <div style={styles.divider} />
+              <StyledText
+                fontSize="25px"
+                fontWeight={600}
+                customStyle={{ marginTop: 20 }}
+              >
+                Activities
+              </StyledText>
+              <StyledText fontSize="18px" fontWeight={600}>
+                Top voted activity
+              </StyledText>
+              <div style={{ marginBottom: 20 }}>
+                {topVotedActivity ? (
+                  <div
+                    className="flexRowCenter"
+                    style={{ justifyContent: 'space-between' }}
+                  >
+                    <div className="flexRowCenter">
+                      <p style={{ marginRight: 20 }}>
+                        {topVotedActivity.activity}
+                      </p>
+                    </div>
+                    <div
+                      style={styles.voteBtn}
+                      onClick={() => {
+                        setModalType('activityVotes');
+                        setModalVisible(true);
+                        setModalData(topVotedActivity);
+                        setVoters(topVotedActivity.voters);
+                      }}
+                    >
+                      <span style={{ fontWeight: '600' }}>Votes:</span>
+                      <span style={{ paddingLeft: 5 }}>
+                        {topVotedActivity.votes}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <StyledText>No votes yet</StyledText>
+                )}
               </div>
-            </div>
-          ))}
+              {!!activities.length && (
+                <StyledText
+                  fontWeight={600}
+                  customStyle={{ marginTop: 20, marginBottom: 10 }}
+                >
+                  Please select your top two preferred activities
+                </StyledText>
+              )}
+              {message?.label && (
+                <StyledText
+                  fontSize="16px"
+                  fontWeight={600}
+                  color={message.type === 'error' ? 'red' : 'green'}
+                  customStyle={{ marginTop: 10, marginBottom: 10 }}
+                >
+                  {message.label}
+                </StyledText>
+              )}
+
+              {activities.map((activity, index) => (
+                <div
+                  key={index}
+                  className="flexRowCenter"
+                  style={{ justifyContent: 'space-between' }}
+                >
+                  <p>{activity.activity}</p>
+                  <div className="flexRowCenter" style={{ marginBottom: 10 }}>
+                    <div
+                      style={{ ...styles.voteBtn, marginRight: 15 }}
+                      onClick={() => {
+                        setModalType('activityVotes');
+                        setModalVisible(true);
+                        setModalData(activity);
+                        setVoters(activity.voters);
+                      }}
+                    >
+                      <span style={{ fontWeight: '600' }}>Votes:</span>
+                      <span style={{ paddingLeft: 5 }}>
+                        {activity.votes || 0}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        ...styles.voteBtn,
+                        backgroundColor: 'blue',
+                        color: 'white',
+                        paddingRight: 10,
+                        paddingLeft: 10,
+                      }}
+                      onClick={() => {
+                        voteActivity(activity);
+                      }}
+                    >
+                      Vote
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+          <div style={styles.divider} />
           <StyledText fontSize="25px" fontWeight={700}>
-            Accomodation
+            Accommodation
           </StyledText>
           <StyledText fontSize="18px" fontWeight={600}>
             Top voted accommodation
           </StyledText>
           <div>
             {topVotedAccommodation ? (
-              // <div
-              //   className="flexRowCenter"
-              //   style={{ justifyContent: 'space-between' }}
-              // >
-              //   <div className="flexRowCenter">
-              //     <p style={{ marginRight: 20 }}>
-              //       {topVotedAccommodation.name}
-              //     </p>
-              //     <div style={{ width: 200 }}>
-              //       <p
-              //         style={{
-              //           color: 'blue',
-              //           whiteSpace: 'nowrap',
-              //           overflow: 'hidden',
-              //           textOverflow: 'ellipsis',
-              //         }}
-              //       >
-              //         <a
-              //           href={topVotedAccommodation?.link}
-              //           target="_blank"
-              //           rel="noreferrer"
-              //         >
-              //           {topVotedAccommodation?.link}
-              //         </a>
-              //       </p>
-              //     </div>
-              //   </div>
-              //   <div
-              //     style={styles.voteBtn}
-              //     onClick={() => {
-              //       setModalType('accommodationVotes');
-              //       setModalVisible(true);
-              //       setModalData(topVotedAccommodation);
-              //       setVoters(topVotedAccommodation.voters);
-              //     }}
-              //   >
-              //     <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-              //     {topVotedAccommodation.votes}
-              //   </div>
-              // </div>
-              <div className="ripple-btn" style={styles.accommodationCardView}>
-                <div style={styles.accommodationBox}>
+              <div style={styles.accommodationCardView}>
+                <div className="ripple-btn" style={styles.accommodationBox}>
                   <div
                     style={styles.accommodationImg}
                     onClick={() => {
-                      const data = accomodationData(topVotedAccommodation.name);
+                      const data = accommodationData(
+                        topVotedAccommodation.name,
+                      );
                       if (data) {
                         data.voters = topVotedAccommodation.voters;
                         setPreviewAccommodation(data);
@@ -594,9 +427,9 @@ export default function InviteeView({
                             alt="loc"
                             style={{ width: 15, height: 15, marginRight: 5 }}
                           />
-                          <StyledText>
+                          {/* <StyledText>
                             {topVotedAccommodation?.address?.street}
-                          </StyledText>
+                          </StyledText> */}
                         </div>
                       )}
                     </div>
@@ -618,7 +451,7 @@ export default function InviteeView({
                           </StyledText>
                         </div>
                       ) : (
-                        <div style={{ height: 30 }} />
+                        <div style={{ height: 0 }} />
                       )}
                       {topVotedAccommodation?.price && (
                         <StyledText fontWeight={500} fontSize="14px">
@@ -635,8 +468,10 @@ export default function InviteeView({
                             setVoters(topVotedAccommodation.voters);
                           }}
                         >
-                          <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                          {topVotedAccommodation.votes || 0}
+                          <span style={{ fontWeight: '600' }}>Votes:</span>
+                          <span style={{ paddingLeft: 5 }}>
+                            {topVotedAccommodation.votes || 0}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -657,7 +492,7 @@ export default function InviteeView({
               Please select your top two preferred accommodation
             </StyledText>
           )}
-          {message.label && message.for === 'accommodation' && (
+          {message?.label && message.for === 'accommodation' && (
             <StyledText
               fontSize="16px"
               fontWeight={600}
@@ -668,60 +503,28 @@ export default function InviteeView({
             </StyledText>
           )}
           <div style={styles.acommodationView}>
-            {!!accommodations.length &&
+            {accommodationsLoading ? (
+              <div className="flexRowCenter">
+                <CirclesWithBar
+                  height="100"
+                  width="100"
+                  color="#4fa94d"
+                  wrapperClass=""
+                  visible={true}
+                  outerCircleColor=""
+                  innerCircleColor=""
+                  barColor=""
+                  ariaLabel="circles-with-bar-loading"
+                />
+                <StyledText customStyle={{ paddingLeft: 20 }}>
+                  Hang tight as we get more info on the accommodation...
+                </StyledText>
+              </div>
+            ) : (
+              !!accommodations.length &&
               accommodations.map((accommodation, index) => {
-                const data = accomodationData(accommodation.name);
+                const data = accommodationData(accommodation.name);
                 return (
-                  // <div
-                  //   key={index}
-                  //   className="flexRowCenter"
-                  //   style={{ justifyContent: 'space-between' }}
-                  // >
-                  //   <div className="flexRowCenter">
-                  //     <p style={{ marginRight: 20 }}>{accommodation.name}</p>
-                  //     <div style={{width: 250}}>
-                  //       <p style={{ color: 'blue', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  //         <a
-                  //           href={accommodation?.link}
-                  //           target="_blank"
-                  //           rel="noreferrer"
-                  //         >
-                  //           {accommodation?.link}
-                  //         </a>
-                  //       </p>
-                  //     </div>
-                  //   </div>
-                  //   <div className="flexRowCenter">
-                  //     <div
-                  //       style={{ ...styles.voteBtn, marginRight: 15 }}
-                  //       onClick={() => {
-                  //         setModalType('accommodationVotes');
-                  //         setModalVisible(true);
-                  //         setModalData(accommodation);
-                  //         setVoters(accommodation.voters);
-                  //       }}
-                  //     >
-                  //       <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                  //       {accommodation.votes || 0}
-                  //     </div>
-                  //     <div
-                  //       style={{
-                  //         ...styles.voteBtn,
-                  //         backgroundColor: 'blue',
-                  //         color: 'white',
-                  //         paddingRight: 10,
-                  //         paddingLeft: 10,
-                  //       }}
-                  //       onClick={() => {
-                  //         setModalVisible(true);
-                  //         setModalType('accommodationVote');
-                  //         setModalData(accommodation);
-                  //       }}
-                  //     >
-                  //       Vote
-                  //     </div>
-                  //   </div>
-                  // </div>
                   <div
                     className="ripple-btn"
                     style={styles.accommodationCardView}
@@ -765,10 +568,7 @@ export default function InviteeView({
                             {accommodation?.name}
                           </StyledText>
                           {data?.address?.street && (
-                            <div
-                              className="flexRowCenter"
-                              style={{ width: 50, flexShrink: 1 }}
-                            >
+                            <div className="flexRowCenter">
                               <img
                                 src={require('../../../../Assets/Images/location.png')}
                                 alt="loc"
@@ -800,16 +600,20 @@ export default function InviteeView({
                               </StyledText>
                             </div>
                           ) : (
-                            <div style={{ height: 30 }} />
+                            <div />
                           )}
                           {data?.price && (
                             <StyledText fontWeight={500} fontSize="14px">
                               Ksh {data?.price}
                             </StyledText>
                           )}
-                          <div className="flexRowCenter">
+                          <div>
                             <div
-                              style={{ ...styles.voteBtn, marginRight: 15 }}
+                              style={{
+                                ...styles.voteBtn,
+                                marginRight: 15,
+                                marginBottom: 10,
+                              }}
                               onClick={() => {
                                 setModalType('accommodationVotes');
                                 setModalVisible(true);
@@ -818,7 +622,9 @@ export default function InviteeView({
                               }}
                             >
                               <span style={{ fontWeight: '600' }}>Votes:</span>{' '}
-                              {accommodation.votes || 0}
+                              <span style={{ paddingLeft: 5 }}>
+                                {accommodation.votes || 0}
+                              </span>
                             </div>
                             <div
                               style={{
@@ -827,6 +633,7 @@ export default function InviteeView({
                                 color: 'white',
                                 paddingRight: 10,
                                 paddingLeft: 10,
+                                width: '70px',
                               }}
                               onClick={() => {
                                 setModalVisible(true);
@@ -842,7 +649,8 @@ export default function InviteeView({
                     </div>
                   </div>
                 );
-              })}
+              })
+            )}
           </div>
           <div
             style={{
@@ -884,181 +692,6 @@ export default function InviteeView({
           </StyledText>
         </div>
       )}
-      <Modal
-        isVisible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        width={isTabletOrMobile ? '90%' : 600}
-        maxHeight={'95vh'}
-      >
-        <div style={{ padding: '10px 20px' }}>
-          <div className="tripModalHeader">
-            <StyledText fontSize="25px" fontWeight={700}>
-              {modalType === 'activities' || modalType === 'activityVotes'
-                ? `Votes for ${modalData?.activity}`
-                : modalType === 'accommodationVote'
-                ? 'Reason'
-                : `Votes for ${modalData?.name}`}
-            </StyledText>
-            <div>
-              <StyledText
-                color="black"
-                fontSize="30px"
-                onClick={() => setModalVisible((prev) => !prev)}
-              >
-                &times;
-              </StyledText>
-            </div>
-          </div>
-          <div className="form">
-            <FormView width={'100%'}>
-              {modalType === 'activities' && (
-                <>
-                  <StyledText fontWeight={500}>
-                    Number of votes: {voters.length}
-                  </StyledText>
-                  <div className="flexRowCenter">
-                    {voters.map((voter) => (
-                      <div style={styles.voterBox}>
-                        <div
-                          style={{
-                            ...styles.attendee,
-                            marginRight: 0,
-                            padding: 2,
-                          }}
-                        >
-                          <div
-                            style={{ ...styles.avatar, width: 40, height: 40 }}
-                          >
-                            {voter?.voter?.firstname?.[0]?.toUpperCase()}
-                          </div>
-                          <StyledText fontSize="14px">
-                            {voter?.voter?.firstname}
-                          </StyledText>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-              {modalType === 'accommodationVotes' && (
-                <>
-                  <StyledText fontWeight={500}>
-                    Number of votes: {voters.length}
-                  </StyledText>
-                  <div
-                    className="flexRowCenter"
-                    style={{ justifyContent: 'center' }}
-                  >
-                    {voters.map((voter) => (
-                      <div style={styles.voterBox}>
-                        <div
-                          style={{
-                            ...styles.attendee,
-                            borderRight: '1px solid grey',
-                            paddingRight: 15,
-                          }}
-                        >
-                          <div
-                            style={{ ...styles.avatar, width: 40, height: 40 }}
-                          >
-                            {voter?.voter?.firstname?.[0]?.toUpperCase()}
-                          </div>
-                          <StyledText fontSize="14px">
-                            {voter?.voter?.firstname}
-                          </StyledText>
-                        </div>
-                        <div
-                          style={{
-                            minWidth: 100,
-                            maxWidth: 200,
-                            height: '100%',
-                          }}
-                        >
-                          <StyledText fontSize="14px">
-                            {voter?.reason}
-                          </StyledText>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {selectedTripAccomodation?.id === modalData?.id && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        flexWrap: 'wrap',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <img
-                        src={require('../../../../Assets/Icons/checked.png')}
-                        alt=""
-                        style={styles.confirmCheck}
-                      />
-                      <StyledText customStyle={{ textAlign: 'center' }}>
-                        Selected as preferred accomodation
-                      </StyledText>
-                    </div>
-                  )}
-                </>
-              )}
-              {modalType === 'activityVotes' && (
-                <>
-                  <StyledText fontWeight={500}>
-                    Number of votes: {voters.length}
-                  </StyledText>
-                  <div className="flexRowCenter">
-                    {voters.map((voter) => (
-                      <div style={styles.voterBox}>
-                        <div
-                          style={{
-                            ...styles.attendee,
-                            marginRight: 0,
-                            padding: 2,
-                          }}
-                        >
-                          <div
-                            style={{ ...styles.avatar, width: 40, height: 40 }}
-                          >
-                            {voter?.voter?.firstname?.[0]?.toUpperCase()}
-                          </div>
-                          <StyledText fontSize="14px">
-                            {voter?.voter?.firstname}
-                          </StyledText>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-              {modalType === 'accommodationVote' && (
-                <div>
-                  <div style={styles.input}>
-                    <StyledText fontSize={16}>
-                      State a reason why you preffer this accommodation to let
-                      other invitees know
-                    </StyledText>
-                    <Input
-                      width={'100%'}
-                      placeholder={'e.g. It is at the beach!'}
-                      onChange={(e) => setAccommodationReason(e.target.value)}
-                    />
-                  </div>
-                  <div style={{ marginTop: 30 }}>
-                    <Button
-                      label={'Submit'}
-                      width={'100%'}
-                      onClick={() => {
-                        voteAccommodation(modalData);
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </FormView>
-          </div>
-        </div>
-      </Modal>
     </>
   );
 }
@@ -1086,9 +719,10 @@ const styles = {
   },
   accommodationBox: {
     width: 270,
-    height: 150,
+    height: 200,
     backgroundColor: 'white',
     borderRadius: 10,
+    boxShadow: '0px 3px 8px 0px rgba(0,0,0,0.7)',
   },
   accommodationCardView: {
     flex: '0 0 auto',
@@ -1118,11 +752,12 @@ const styles = {
     marginRight: 10,
   },
   voteBtn: {
-    backgroundColor: '#55c2da',
+    backgroundColor: '#F57878',
     padding: 5,
     borderRadius: 10,
     cursor: 'pointer',
-    // marginBottom: 15,
+    display: 'flex',
+    alignItems: 'center',
   },
   confirmCheck: {
     width: 40,
@@ -1141,5 +776,11 @@ const styles = {
     minHeight: 100,
     wordWrap: 'break-word',
     marginBottom: 20,
+  },
+  divider: {
+    height: 5,
+    backgroundColor: '#F6F6F6',
+    marginTop: 10,
+    marginBottom: 10,
   },
 };

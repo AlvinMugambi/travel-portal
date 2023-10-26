@@ -1,6 +1,6 @@
 import axios from 'axios';
-const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
-// const BASE_URL = 'http://127.0.0.1:8400';
+// const BASE_URL = 'https://nairobiservices.go.ke/api/travel';
+const BASE_URL = 'http://127.0.0.1:8000';
 
 const createTrip = async (
   trip_name,
@@ -73,9 +73,9 @@ const updateTripDate = async (trip_id, start_date, end_date, jwtToken) => {
     });
 };
 
-const updateTripAccomodation = async (
+const updateTripaccommodation = async (
   trip_id,
-  selected_accomodation,
+  selected_accommodation,
   jwtToken,
 ) => {
   return axios
@@ -83,7 +83,7 @@ const updateTripAccomodation = async (
       `${BASE_URL}/trips/update`,
       {
         trip_id,
-        selected_accomodation,
+        selected_accommodation,
       },
       {
         headers: {
@@ -95,7 +95,7 @@ const updateTripAccomodation = async (
       return response.data;
     })
     .catch((error) => {
-      console.error('updateTripAccomodation error =>', error?.response);
+      console.error('updateTripaccommodation error =>', error?.response);
       return {
         success: false,
         error: error,
@@ -206,10 +206,10 @@ const sendTripInvite = async (username, trip_id, jwtToken) => {
     });
 };
 
-const getAccomodationVotes = async (trip_id, jwtToken) => {
+const getaccommodationVotes = async (trip_id, jwtToken) => {
   return axios
     .post(
-      `${BASE_URL}/trips/top_voted_accomodation`,
+      `${BASE_URL}/trips/top_voted_accommodation`,
       { trip_id },
       {
         headers: {
@@ -221,7 +221,7 @@ const getAccomodationVotes = async (trip_id, jwtToken) => {
       return response.data;
     })
     .catch((error) => {
-      console.error('getAccomodationVotes error =>', error?.response);
+      console.error('getaccommodationVotes error =>', error?.response);
       return {
         success: false,
         error: error,
@@ -252,11 +252,11 @@ const getTopVotedDate = async (trip_id, jwtToken) => {
     });
 };
 
-const voteForActivity = async (trip_id, activity_id, jwtToken) => {
+const voteForActivity = async (trip_id, activity_id, jwtToken, voter_name) => {
   return axios
     .post(
       `${BASE_URL}/trips/vote_activity`,
-      { trip_id, activity_id },
+      { trip_id, activity_id, voter_name },
       {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
@@ -275,16 +275,17 @@ const voteForActivity = async (trip_id, activity_id, jwtToken) => {
     });
 };
 
-const voteForAccomodation = async (
+const voteForaccommodation = async (
   trip_id,
   accommodation_id,
   reason,
   jwtToken,
+  voter_name,
 ) => {
   return axios
     .post(
       `${BASE_URL}/trips/vote_accommodation`,
-      { trip_id, accommodation_id, reason },
+      { trip_id, accommodation_id, reason, voter_name },
       {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
@@ -295,7 +296,7 @@ const voteForAccomodation = async (
       return response.data;
     })
     .catch((error) => {
-      console.error('voteForAccomodation error =>', error?.response);
+      console.error('voteForaccommodation error =>', error?.response);
       return {
         success: false,
         error: error,
@@ -401,6 +402,7 @@ const inviteeUpdatePreferredDate = async (
   selected_available_enddate,
   selected_date_reason,
   jwtToken,
+  voter_name,
 ) => {
   return axios
     .patch(
@@ -410,6 +412,7 @@ const inviteeUpdatePreferredDate = async (
         selected_available_startdate,
         selected_available_enddate,
         selected_date_reason,
+        voter_name,
       },
       {
         headers: {
@@ -429,16 +432,16 @@ const inviteeUpdatePreferredDate = async (
     });
 };
 
-const inviteeUpdatePreferredAccomodation = async (
+const inviteeUpdatePreferredaccommodation = async (
   trip_id,
-  selected_accomodation_id,
-  selected_accomodation_reason,
+  selected_accommodation_id,
+  selected_accommodation_reason,
   jwtToken,
 ) => {
   return axios
     .patch(
       `${BASE_URL}/trips/invitee_update_trip`,
-      { trip_id, selected_accomodation_id, selected_accomodation_reason },
+      { trip_id, selected_accommodation_id, selected_accommodation_reason },
       {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
@@ -450,7 +453,7 @@ const inviteeUpdatePreferredAccomodation = async (
     })
     .catch((error) => {
       console.error(
-        'inviteeUpdatePreferredAccomodation error =>',
+        'inviteeUpdatePreferredaccommodation error =>',
         error?.response,
       );
       return {
@@ -582,15 +585,15 @@ export const tripService = {
   getAcceptedTrips,
   getTripAttendees,
   sendTripInvite,
-  getAccomodationVotes,
+  getaccommodationVotes,
   getTripRegister,
   acceptInvite,
   denyInvite,
   completeInvite,
   inviteeUpdatePreferredDate,
-  inviteeUpdatePreferredAccomodation,
+  inviteeUpdatePreferredaccommodation,
   updateTripDate,
-  updateTripAccomodation,
+  updateTripaccommodation,
   getTopVotedDate,
   getTripProposedDates,
   addTripActivity,
@@ -598,5 +601,5 @@ export const tripService = {
   addTripAccommodation,
   getTripAccommodations,
   voteForActivity,
-  voteForAccomodation,
+  voteForaccommodation,
 };

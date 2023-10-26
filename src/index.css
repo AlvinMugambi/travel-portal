@@ -36,6 +36,12 @@ textarea {
   font-size: 14px;
 }
 
+p {
+  font-family: var(--primary-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 input {
   font-size: 14px;
 }

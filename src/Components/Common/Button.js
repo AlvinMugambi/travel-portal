@@ -14,7 +14,14 @@ export default function Button({
 }) {
   return (
     <div
-      style={{ ...styles.btn, ...customStyles, backgroundColor, width, height }}
+      style={{
+        ...styles.btn,
+        ...customStyles,
+        backgroundColor,
+        width,
+        height,
+        opacity: disabled ? 0.5 : 1,
+      }}
       onClick={() => !disabled && onClick()}
     >
       <StyledText fontSize={fontSize} color={labelColor}>

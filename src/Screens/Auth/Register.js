@@ -65,13 +65,10 @@ export default function Register() {
       <div style={styles.header}>
         <div style={styles.flexCenter}>
           <img
-            src={require('../../Assets/Images/travel-tech-logo.png')}
+            src={require('../../Assets/Images/Logo/logo.png')}
             alt=""
-            style={styles.img}
+            className="img"
           />
-          <StyledText fontSize="20px" fontWeight={700}>
-            Travel Tech Africa
-          </StyledText>
         </div>
       </div>
       <div style={styles.form}>

@@ -295,8 +295,8 @@
 }
 
 .section1 {
-  width: 50vw;
-  height: 70vh;
+  width: 40vw;
+  height: 80vh;
   border-right: 1px solid grey;
   display: flex;
   flex-direction: column;
@@ -304,8 +304,8 @@
 }
 
 .section2 {
-  width: 50vw;
-  height: 75vh;
+  width: 60vw;
+  height: 80vh;
   display: flex;
   flex-direction: column;
   padding: 20px;
@@ -425,7 +425,7 @@
   border-radius: 10px 10px 0 0;
 }
 
-/* Accomodation modal styles */
+/* accommodation modal styles */
 
 .pad20 {
   padding: 20px;
@@ -447,7 +447,7 @@
     display: flex;
     flex-direction: column;
   }
-  .accomodationDetails {
+  .accommodationDetails {
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
@@ -505,7 +505,7 @@
   border-radius: 10px 10px 0 0;
 }
 
-.accomodationDetails {
+.accommodationDetails {
   padding-right: 20px;
   padding-left: 20px;
 }
@@ -587,6 +587,10 @@
   .tripLayout {
     display: flex;
     flex-direction: column;
+  }
+  .invitePage {
+    margin-right: 20px;
+    margin-left: 20px;
   }
   .section1 {
     width: 100%;

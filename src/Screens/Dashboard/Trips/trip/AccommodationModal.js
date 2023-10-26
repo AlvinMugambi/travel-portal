@@ -19,17 +19,17 @@ export default function AccommodationModal({
   const [reason, setReason] = useState('');
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
   // const voters = useMemo(
-  //   () => tripRegister.filter((x) => !!x.selected_accomodation_id),
+  //   () => tripRegister.filter((x) => !!x.selected_accommodation_id),
   //   [tripRegister],
   // );
-
+  console.log('accommodation===>', accommodation);
   const jwtToken = localStorage.getItem('token');
 
-  const inviteeSelectAccomodation = () => {
+  const inviteeSelectaccommodation = () => {
     console.log('here');
     tripService
-      .inviteeUpdatePreferredAccomodation(
-        tripRegister?.[0]?.trip?.id,
+      .inviteeUpdatePreferredaccommodation(
+        tripRegister?.id,
         accommodation?.id,
         reason,
         jwtToken,
@@ -40,13 +40,9 @@ export default function AccommodationModal({
       });
   };
 
-  const organiserSelectAccomodation = () => {
+  const organiserSelectaccommodation = () => {
     tripService
-      .updateTripAccomodation(
-        tripRegister?.[0]?.trip?.id,
-        accommodation?.id,
-        jwtToken,
-      )
+      .updateTripaccommodation(tripRegister?.id, accommodation?.id, jwtToken)
       .then((res) => {
         console.log('res===>', res);
         setModalVisible(false);
@@ -99,14 +95,24 @@ export default function AccommodationModal({
               showStatus={false}
               showThumbs={false}
             >
-              {accommodation?.images?.map((image) => (
-                <div>
-                  <img className="carouselImg" src={image} alt="" />
-                </div>
-              ))}
+              {accommodation?.images
+                ? accommodation?.images?.map((image) => (
+                    <div>
+                      <img className="carouselImg" src={image} alt="" />
+                    </div>
+                  ))
+                : accommodation?.photos?.map((image) => (
+                    <div>
+                      <img
+                        className="carouselImg"
+                        src={image?.pictureUrl}
+                        alt=""
+                      />
+                    </div>
+                  ))}
             </Carousel>
           </div>
-          <div className="accomodationDetails">
+          <div className="accommodationDetails">
             <StyledText fontSize="20px" fontWeight={600}>
               Description
             </StyledText>
@@ -182,14 +188,14 @@ export default function AccommodationModal({
                         <div
                           style={{ ...styles.avatar, width: 40, height: 40 }}
                         >
-                          {register?.user?.[0]?.toUpperCase()}
+                          {register?.voter?.firstname?.[0]?.toUpperCase()}
                         </div>
                         <StyledText fontSize="14px">
-                          {register?.user}
+                          {register?.voter?.firstname}
                         </StyledText>
                       </div>
                       <StyledText fontSize="14px">
-                        {register?.selected_accomodation_reason}
+                        {register?.reason}
                       </StyledText>
                     </div>
                   </div>
@@ -197,7 +203,7 @@ export default function AccommodationModal({
               </div>
             ) : (
               <StyledText customStyle={{ marginTop: 50 }}>
-                No votes on this accomodation yet
+                No votes on this accommodation yet
               </StyledText>
             )}
           </div>
@@ -256,36 +262,33 @@ export default function AccommodationModal({
             </div>
           </div>
         )}
-        {!tripRegister?.[0]?.trip?.selected_accomodation &&
-          !isTripOrganiser && (
-            <div className="voteReasonLayout">
-              <div
-                style={{
-                  marginRight: isTabletOrMobile ? 0 : 30,
-                  marginBottom: isTabletOrMobile ? 10 : 0,
-                }}
-              >
-                <Input
-                  height={50}
-                  width={isTabletOrMobile ? '80vw' : 500}
-                  customStyles={{ border: '1px solid grey', borderRadius: 10 }}
-                  placeHolder={
-                    'State a reason why you prefer this accommodation'
-                  }
-                  onChange={(e) => setReason(e.target.value)}
-                />
-              </div>
-              <Button
-                label={'Vote for this accommodation'}
-                width={isTabletOrMobile ? '100%' : 400}
-                onClick={() => {
-                  isTripOrganiser
-                    ? organiserSelectAccomodation()
-                    : inviteeSelectAccomodation();
-                }}
+        {!tripRegister?.selected_accommodation && !isTripOrganiser && (
+          <div className="voteReasonLayout">
+            <div
+              style={{
+                marginRight: isTabletOrMobile ? 0 : 30,
+                marginBottom: isTabletOrMobile ? 10 : 0,
+              }}
+            >
+              <Input
+                height={50}
+                width={isTabletOrMobile ? '80vw' : 500}
+                customStyles={{ border: '1px solid grey', borderRadius: 10 }}
+                placeHolder={'State a reason why you prefer this accommodation'}
+                onChange={(e) => setReason(e.target.value)}
               />
             </div>
-          )}
+            <Button
+              label={'Vote for this accommodation'}
+              width={isTabletOrMobile ? '100%' : 400}
+              onClick={() => {
+                isTripOrganiser
+                  ? organiserSelectaccommodation()
+                  : inviteeSelectaccommodation();
+              }}
+            />
+          </div>
+        )}
         {isTripOrganiser && (
           <div className="voteReasonLayout">
             <Button
@@ -293,8 +296,8 @@ export default function AccommodationModal({
               width={isTabletOrMobile ? '100%' : 400}
               onClick={() => {
                 isTripOrganiser
-                  ? organiserSelectAccomodation()
-                  : inviteeSelectAccomodation();
+                  ? organiserSelectaccommodation()
+                  : inviteeSelectaccommodation();
               }}
             />
           </div>

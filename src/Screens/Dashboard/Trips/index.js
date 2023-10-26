@@ -552,6 +552,7 @@ export default function Trips({ setDrawerOpen }) {
                     <Calendar
                       onChange={setSelectedTripDate}
                       value={selectedTripDate}
+                      minDate={new Date()}
                       selectRange
                     />
                   </div>
@@ -678,13 +679,13 @@ export default function Trips({ setDrawerOpen }) {
                       {mainAgenda.includes('accommodation') && (
                         <>
                           <StyledText fontSize="14px">
-                            Provide links to the accomodations you would like
+                            Provide links to the accommodations you would like
                             people to choose from (You can add others later)
                           </StyledText>
                           <div style={{ marginBottom: 20 }}>
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 1 name'}
+                              placeholder={'accommodation 1 name'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation1((prev) => ({
@@ -695,7 +696,7 @@ export default function Trips({ setDrawerOpen }) {
                             />
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 1 link'}
+                              placeholder={'accommodation 1 link'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation1((prev) => ({
@@ -708,7 +709,7 @@ export default function Trips({ setDrawerOpen }) {
                           <div style={{ marginBottom: 20 }}>
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 2 name'}
+                              placeholder={'accommodation 2 name'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation2((prev) => ({
@@ -719,7 +720,7 @@ export default function Trips({ setDrawerOpen }) {
                             />
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 2 link'}
+                              placeholder={'accommodation 2 link'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation2((prev) => ({
@@ -732,7 +733,7 @@ export default function Trips({ setDrawerOpen }) {
                           <div style={{ marginBottom: 20 }}>
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 3 name'}
+                              placeholder={'accommodation 3 name'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation3((prev) => ({
@@ -743,7 +744,7 @@ export default function Trips({ setDrawerOpen }) {
                             />
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 3 link'}
+                              placeholder={'accommodation 3 link'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation3((prev) => ({
@@ -756,7 +757,7 @@ export default function Trips({ setDrawerOpen }) {
                           <div style={{ marginBottom: 20 }}>
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 4 name'}
+                              placeholder={'accommodation 4 name'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation4((prev) => ({
@@ -767,7 +768,7 @@ export default function Trips({ setDrawerOpen }) {
                             />
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 4 link'}
+                              placeholder={'accommodation 4 link'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation4((prev) => ({
@@ -780,7 +781,7 @@ export default function Trips({ setDrawerOpen }) {
                           <div style={{ marginBottom: 20 }}>
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 5 name'}
+                              placeholder={'accommodation 5 name'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation5((prev) => ({
@@ -791,7 +792,7 @@ export default function Trips({ setDrawerOpen }) {
                             />
                             <Input
                               customStyles={{ marginBottom: 10 }}
-                              placeholder={'Accomodation 5 link'}
+                              placeholder={'accommodation 5 link'}
                               width={'100%'}
                               onChange={(e) =>
                                 setAccommodation5((prev) => ({

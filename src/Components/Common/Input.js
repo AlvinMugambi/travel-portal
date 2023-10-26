@@ -6,6 +6,7 @@ export default function Input({
   type,
   width = 50,
   height = 40,
+  backgroundColor = 'white',
   onChange,
   customStyles,
   placeholder,
@@ -20,14 +21,20 @@ export default function Input({
       )}
       {textArea ? (
         <textarea
-          style={{ ...styles.input, width, height: 60, paddingTop: 10 }}
+          style={{
+            ...styles.input,
+            backgroundColor,
+            width,
+            height: 60,
+            paddingTop: 10,
+          }}
           placeholder={placeholder}
           type={type}
           onChange={onChange}
         />
       ) : (
         <input
-          style={{ ...styles.input, width, height }}
+          style={{ ...styles.input, backgroundColor, width, height }}
           placeholder={placeholder}
           type={type}
           onChange={onChange}
